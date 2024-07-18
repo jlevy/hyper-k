@@ -1,13 +1,12 @@
-const COLOR_CODE_BG = "#7b7b15";
-const COMMAND_REGEX = /`([^`]+)`/g;
+const { COMBINED_REGEX } = require("./constants");
 
-const addCodeHighlights = (term) => {
-  console.log("Adding decorations", term);
+const HIGHLIGHT_BG = "#7b7b15";
+
+const addHighlights = (term) => {
+  console.log("addHighlights on term", term);
 
   const buffer = term.buffer.active;
   const decorationService = term._core._decorationService;
-
-  console.log("Buffer", buffer);
 
   // Clear previous decorations.
   if (term.decorations) {
@@ -15,21 +14,28 @@ const addCodeHighlights = (term) => {
   }
   term.decorations = [];
 
-  // Decorate every command based on the regex.
+  // Decorate every match based on the regex.
   for (let lineIndex = 0; lineIndex < buffer.length; lineIndex++) {
     const line = buffer.getLine(lineIndex);
     if (!line) continue;
     const lineContent = line.translateToString(true);
     let match;
-    while ((match = COMMAND_REGEX.exec(lineContent)) !== null) {
-      const start = match.index;
-      const end = start + match[0].length;
+    while ((match = COMBINED_REGEX.exec(lineContent)) !== null) {
+      // Highlight first capturing group, if it is present, otherwise the whole match.
+      let hl_start, hl_end;
+      if (match[1]) {
+        hl_start = match.index + match[0].indexOf(match[1]);
+        hl_end = hl_start + match[1].length;
+      } else {
+        hl_start = match.index;
+        hl_end = hl_start + match[0].length;
+      }
 
       const marker = term.registerMarker(
         lineIndex - buffer._buffer.y - buffer._buffer.ybase
       );
 
-      for (let i = start + 1; i < end - 1; i++) {
+      for (let i = hl_start; i < hl_end; i++) {
         const cell = line.getCell(i);
         if (!cell) continue;
 
@@ -37,7 +43,7 @@ const addCodeHighlights = (term) => {
           marker: marker,
           x: i,
           width: 1,
-          backgroundColor: COLOR_CODE_BG,
+          backgroundColor: HIGHLIGHT_BG,
         });
         term.decorations.push(decoration);
       }
@@ -47,4 +53,4 @@ const addCodeHighlights = (term) => {
   term.refresh(0, buffer.length - 1);
 };
 
-module.exports = addCodeHighlights;
+module.exports = addHighlights;

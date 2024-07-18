@@ -1,4 +1,4 @@
-const IMAGE_URL_REGEX = /https?:\/\/.*\.(png|jpg|jpeg|gif|webp)/;
+const { IMAGE_URL_REGEX } = require("./constants");
 
 const imageMiddleware = (store) => (next) => (action) => {
   if (action.type === "SESSION_ADD_DATA") {
@@ -6,7 +6,7 @@ const imageMiddleware = (store) => (next) => (action) => {
     const match = data.match(IMAGE_URL_REGEX);
     if (match) {
       const imageUrl = match[0];
-      console.log("Saw an image URL", imageUrl);
+      console.log("image-handler: Loading image URL", imageUrl);
 
       store.dispatch({
         type: "HOOK_IMAGE",

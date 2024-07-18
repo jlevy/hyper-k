@@ -4,7 +4,8 @@ const {
   imageTermProps,
   mapTermsStateToImageProps,
 } = require("./image-handler");
-const addCodeHighlights = require("./code-highlighter");
+const addHighlights = require("./regex-highlighter");
+// const CodeLinksAddon = require("./CodeLinksAddon");
 
 const KEY_CODE_BACKSPACE = 8;
 
@@ -35,7 +36,7 @@ exports.decorateTerm = (Term, { React, notify }) => {
           false
         );
         if (this._term.term) {
-          this._term.term.offRender(() => addCodeHighlights(this._term.term));
+          this._term.term.offRender(() => addHighlights(this._term.term));
         }
       }
     }
@@ -51,11 +52,17 @@ exports.decorateTerm = (Term, { React, notify }) => {
       this._term = term;
 
       this._term.termRef.addEventListener("keyup", this.handleKeyUp, false);
-      addCodeHighlights(this._term.term);
+
+      addHighlights(this._term.term);
+
+      // Load the Custom Web Links Addon
+      // const codeLinksAddon = new CodeLinksAddon();
+      // this._term.term.loadAddon(codeLinksAddon);
+      // console.log("Loaded CodeLinksAddon", codeLinksAddon);
 
       // Observe changes in the terminal content.
       console.log("Adding onRender listener", this._term.term);
-      this._term.term.onRender(() => addCodeHighlights(this._term.term));
+      this._term.term.onRender(() => addHighlights(this._term.term));
     }
 
     handleKeyUp(event) {
@@ -77,6 +84,9 @@ exports.decorateTerm = (Term, { React, notify }) => {
             maxWidth: "35%",
             maxHeight: "35%",
             display: "none",
+            // Fade in/out effect:
+            opacity: 0,
+            transition: "opacity 0.4s ease-in-out",
           },
           src: null,
           id: "image-view",
@@ -92,10 +102,15 @@ exports.decorateTerm = (Term, { React, notify }) => {
       }
       if (imageUrl) {
         imageView.style.display = "block";
+        setTimeout(() => {
+          imageView.style.opacity = 1; // Fade in
+        }, 0);
         imageView.src = imageUrl;
       } else {
-        imageView.style.display = "none";
-        imageView.src = null;
+        imageView.style.opacity = 0;
+        setTimeout(() => {
+          imageView.style.display = "none";
+        }, 400); // Match the duration of the opacity transition.
       }
     }
 
