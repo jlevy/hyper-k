@@ -3,8 +3,6 @@ const { COMBINED_REGEX } = require("./constants");
 const HIGHLIGHT_BG = "#7b7b15";
 
 const addHighlights = (term) => {
-  console.log("addHighlights on term", term);
-
   const buffer = term.buffer.active;
   const decorationService = term._core._decorationService;
 
@@ -35,22 +33,22 @@ const addHighlights = (term) => {
         lineIndex - buffer._buffer.y - buffer._buffer.ybase
       );
 
-      for (let i = hl_start; i < hl_end; i++) {
-        const cell = line.getCell(i);
-        if (!cell) continue;
-
-        const decoration = decorationService.registerDecoration({
-          marker: marker,
-          x: i,
-          width: 1,
-          backgroundColor: HIGHLIGHT_BG,
-        });
-        term.decorations.push(decoration);
-      }
+      const decoration = decorationService.registerDecoration({
+        marker: marker,
+        x: hl_start,
+        width: hl_end - hl_start,
+        backgroundColor: HIGHLIGHT_BG,
+      });
+      term.decorations.push(decoration);
     }
   }
 
   term.refresh(0, buffer.length - 1);
+
+  console.log(
+    `addHighlights inserted ${term.decorations.length} decorations on terminal`,
+    term
+  );
 };
 
 module.exports = addHighlights;
