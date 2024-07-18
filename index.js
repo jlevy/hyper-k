@@ -1,10 +1,12 @@
-const COLOR_CODE_BG = "#7b7b15";
+const {
+  imageMiddleware,
+  imageReducer,
+  imageTermProps,
+  mapTermsStateToImageProps,
+} = require("./image-handler");
+const addCodeHighlights = require("./code-highlighter");
 
 const KEY_CODE_BACKSPACE = 8;
-
-const COMMAND_REGEX = /`([^`]+)`/g;
-
-const IMAGE_URL_REGEX = /https?:\/\/.*\.(png|jpg|jpeg|gif|webp)/;
 
 exports.decorateTerm = (Term, { React, notify }) => {
   console.log("Decorating term", Term);
@@ -15,7 +17,7 @@ exports.decorateTerm = (Term, { React, notify }) => {
       this._term = null;
       this.onDecorated = this.onDecorated.bind(this);
       this.handleKeyUp = this.handleKeyUp.bind(this);
-      this.addDecorations = this.addDecorations.bind(this);
+      this.setImageView = this.setImageView.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -33,7 +35,7 @@ exports.decorateTerm = (Term, { React, notify }) => {
           false
         );
         if (this._term.term) {
-          this._term.term.offRender(this.addDecorations);
+          this._term.term.offRender(() => addCodeHighlights(this._term.term));
         }
       }
     }
@@ -49,16 +51,11 @@ exports.decorateTerm = (Term, { React, notify }) => {
       this._term = term;
 
       this._term.termRef.addEventListener("keyup", this.handleKeyUp, false);
-
-      this.addDecorations();
+      addCodeHighlights(this._term.term);
 
       // Observe changes in the terminal content.
       console.log("Adding onRender listener", this._term.term);
-      if (this._term.term) {
-        this._term.term.onRender(this.addDecorations);
-      } else {
-        console.error("No term to attach onRender listener to", this);
-      }
+      this._term.term.onRender(() => addCodeHighlights(this._term.term));
     }
 
     handleKeyUp(event) {
@@ -67,57 +64,6 @@ exports.decorateTerm = (Term, { React, notify }) => {
       if (keyCode === KEY_CODE_BACKSPACE) {
         this.setImageView(null);
       }
-    }
-
-    addDecorations() {
-      console.log("Adding decorations", this);
-
-      if (!this?._term?.term) {
-        return;
-      }
-
-      const term = this._term.term;
-      const buffer = term.buffer.active;
-      const decorationService = term._core._decorationService;
-
-      console.log("Buffer", buffer);
-
-      // Clear previous decorations.
-      if (this.decorations) {
-        this.decorations.forEach((decoration) => decoration.dispose());
-      }
-      this.decorations = [];
-
-      // Decorate every command based on the regex.
-      for (let lineIndex = 0; lineIndex < buffer.length; lineIndex++) {
-        const line = buffer.getLine(lineIndex);
-        if (!line) continue;
-        const lineContent = line.translateToString(true);
-        let match;
-        while ((match = COMMAND_REGEX.exec(lineContent)) !== null) {
-          const start = match.index;
-          const end = start + match[0].length;
-
-          const marker = term.registerMarker(
-            lineIndex - buffer._buffer.y - buffer._buffer.ybase
-          );
-
-          for (let i = start + 1; i < end - 1; i++) {
-            const cell = line.getCell(i);
-            if (!cell) continue;
-
-            const decoration = decorationService.registerDecoration({
-              marker: marker,
-              x: i,
-              width: 1,
-              backgroundColor: COLOR_CODE_BG,
-            });
-            this.decorations.push(decoration);
-          }
-        }
-      }
-
-      term.refresh(0, buffer.length - 1);
     }
 
     createImageView() {
@@ -178,47 +124,10 @@ exports.decorateTerm = (Term, { React, notify }) => {
   };
 };
 
-exports.middleware = (store) => (next) => (action) => {
-  if (action.type === "SESSION_ADD_DATA") {
-    const { data } = action;
-
-    const match = data.match(IMAGE_URL_REGEX);
-    if (match) {
-      const imageUrl = match[0];
-      console.log("Saw an image URL", imageUrl);
-
-      store.dispatch({
-        type: "HOOK_IMAGE",
-        url: imageUrl,
-      });
-    }
-  }
-
-  next(action);
-};
-
-exports.reduceUI = (state, action) => {
-  switch (action.type) {
-    case "HOOK_IMAGE":
-      console.log("Reduce HOOK_IMAGE", action);
-      return state.set("imageViewState", {
-        url: action.url,
-      });
-  }
-  return state;
-};
-
-exports.mapTermsState = (state, map) =>
-  Object.assign(map, {
-    imageViewState: state.ui.imageViewState,
-  });
-
-const passProps = (uid, parentProps, props) =>
-  Object.assign(props, {
-    imageViewState: parentProps.imageViewState,
-  });
-
-exports.getTermGroupProps = passProps;
-exports.getTermProps = passProps;
+exports.middleware = imageMiddleware;
+exports.reduceUI = imageReducer;
+exports.mapTermsState = mapTermsStateToImageProps;
+exports.getTermGroupProps = imageTermProps;
+exports.getTermProps = imageTermProps;
 
 console.log("hyper-easy loaded");
