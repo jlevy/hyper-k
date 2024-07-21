@@ -26,12 +26,18 @@ class CustomLinkProvider {
 
   _addCallbacks(links) {
     return links.map((link) => {
-      link.leave = this._options.leave;
+      link.leave = (event, uri) => {
+        if (this._options.leave) {
+          this._options.leave(event, uri);
+        }
+        event.target.style.cursor = "auto";
+      };
       link.hover = (event, uri) => {
         if (this._options.hover) {
           const { range } = link;
           this._options.hover(event, uri, range);
         }
+        event.target.style.cursor = "pointer";
       };
       return link;
     });
