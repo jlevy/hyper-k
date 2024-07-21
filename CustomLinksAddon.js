@@ -1,5 +1,5 @@
 /**
- * Adapted from the xterm.js addon
+ * Portions adapted from the xterm.js addon
  * https://github.com/xtermjs/xterm.js/tree/master/addons/addon-web-links
  * which is
  * Copyright (c) 2019 The xterm.js authors. All rights reserved.
@@ -23,10 +23,30 @@ function openLink(event, uri, terminal) {
   }
 }
 
-// Custom handler to type text into the terminal.
+// Custom handler to paste text into the terminal.
 function pasteText(event, text, terminal) {
   console.log("Paste text to terminal", text);
-  terminal.write(text);
+
+  terminal.focus();
+
+  // XXX It wasn't clear how it's best to simulate typing text, but this seems to be what we want.
+  // You can't use terminal.write() as it won't go into the textarea input. And you can't
+  // just write to the textarea. Finally, simulating keypresses is pretty messy. So instead
+  // fire the xterm.js event.
+  function sendChar(char) {
+    terminal._core._onData.fire(char);
+  }
+
+  let i = 0;
+  function typeNextChar() {
+    if (i < text.length) {
+      sendChar(text[i]);
+      i++;
+      setTimeout(typeNextChar, 5); // Very short delay.
+    }
+  }
+
+  typeNextChar();
 }
 
 class CustomLinksAddon {

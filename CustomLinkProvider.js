@@ -1,5 +1,5 @@
 /**
- * Adapted from the xterm.js addon
+ * Portions adapted from the xterm.js addon
  * https://github.com/xtermjs/xterm.js/tree/master/addons/addon-web-links
  * which is
  * Copyright (c) 2019 The xterm.js authors. All rights reserved.
