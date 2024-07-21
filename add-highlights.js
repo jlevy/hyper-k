@@ -1,8 +1,6 @@
-const { COMBINED_REGEX } = require("./constants");
+const HIGHLIGHT_BG = "#5a5a12";
 
-const HIGHLIGHT_BG = "#7b7b15";
-
-const addHighlights = (term) => {
+const addHighlights = (term, regex_pat) => {
   const buffer = term.buffer.active;
   const decorationService = term._core._decorationService;
 
@@ -14,11 +12,12 @@ const addHighlights = (term) => {
 
   // Decorate every match based on the regex.
   for (let lineIndex = 0; lineIndex < buffer.length; lineIndex++) {
+    const regex = new RegExp(regex_pat, "g");
     const line = buffer.getLine(lineIndex);
     if (!line) continue;
     const lineContent = line.translateToString(true);
     let match;
-    while ((match = COMBINED_REGEX.exec(lineContent)) !== null) {
+    while ((match = regex.exec(lineContent)) !== null) {
       // Highlight first capturing group, if it is present, otherwise the whole match.
       let hl_start, hl_end;
       if (match[1]) {

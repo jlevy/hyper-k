@@ -37,16 +37,21 @@ function pasteText(event, text, terminal) {
     terminal._core._onData.fire(char);
   }
 
-  let i = 0;
-  function typeNextChar() {
-    if (i < text.length) {
-      sendChar(text[i]);
-      i++;
-      setTimeout(typeNextChar, 5); // Very short delay.
-    }
+  for (let i = 0; i < text.length; i++) {
+    sendChar(text[i]);
   }
 
-  typeNextChar();
+  // Experimented with a delay to make it look like typing but
+  // doesn't seem necessary.
+  // let i = 0;
+  // function typeNextChar() {
+  //   if (i < text.length) {
+  //     sendChar(text[i]);
+  //     i++;
+  //     setTimeout(typeNextChar, 2); // Very short delay.
+  //   }
+  // }
+  // typeNextChar();
 }
 
 class CustomLinksAddon {

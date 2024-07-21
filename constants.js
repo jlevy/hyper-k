@@ -14,17 +14,12 @@
 //
 // Note the first capturing group, if present, is what we pass to handlers.
 // So use non-capturing groups (?:...) if necessary.
-const URL_REGEX =
+const URL_RE_PAT =
   /((?:https?|HTTPS?):[/]{2}[^\s"'!*(){}|\\\^<>`]*[^\s"':,.!?{}|\\\^~\[\]`()<>])/;
 
-const IMAGE_URL_REGEX =
+const IMAGE_URL_RE_PAT =
   /(?:https?|HTTPS?):[/]{2}[^\s"'!*(){}|\\\^<>`]*[^\s"':,.!?{}|\\\^~\[\]`()<>]\.(?:png|jpg|jpeg|gif|webp)/;
 
-const COMMAND_REGEX = /`([^`]+)`/;
+const COMMAND_RE_PAT = /`([^`]+)`/;
 
-const COMBINED_REGEX = new RegExp(
-  `((?:${COMMAND_REGEX.source})|(?:${IMAGE_URL_REGEX.source}))`,
-  "g"
-);
-
-module.exports = { URL_REGEX, IMAGE_URL_REGEX, COMMAND_REGEX, COMBINED_REGEX };
+module.exports = { URL_RE_PAT, IMAGE_URL_RE_PAT, COMMAND_RE_PAT };

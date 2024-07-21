@@ -38,23 +38,6 @@ class CustomLinkProvider {
   }
 }
 
-// function isUrl(urlString) {
-//   try {
-//     const url = new URL(urlString);
-//     const parsedBase =
-//       url.password && url.username
-//         ? `${url.protocol}//${url.username}:${url.password}@${url.host}`
-//         : url.username
-//         ? `${url.protocol}//${url.username}@${url.host}`
-//         : `${url.protocol}//${url.host}`;
-//     return urlString
-//       .toLocaleLowerCase()
-//       .startsWith(parsedBase.toLocaleLowerCase());
-//   } catch (e) {
-//     return false;
-//   }
-// }
-
 class LinkComputer {
   static computeLink(y, regex, terminal, activate) {
     const rex = new RegExp(regex.source, (regex.flags || "") + "g");
@@ -72,11 +55,6 @@ class LinkComputer {
       // Check for first capturing group, if it exists, otherwise the whole match.
       const matchText = match[1] || match[0];
       const fullText = match[0];
-
-      // check via URL if the matched text would form a proper url
-      // if (!isUrl(text)) {
-      //   continue;
-      // }
 
       // map string positions back to buffer positions
       // values are 0-based right side excluding
