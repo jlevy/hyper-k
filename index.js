@@ -5,9 +5,22 @@ const {
   mapTermsStateToImageProps,
 } = require("./image-handler");
 const addHighlights = require("./regex-highlighter");
-// const CodeLinksAddon = require("./CodeLinksAddon");
+const { WebLinksAddon, openLink, pasteText } = require("./WebLinksAddon");
+const { URL_REGEX, COMMAND_REGEX } = require("./constants");
 
 const KEY_CODE_BACKSPACE = 8;
+
+// XXX: Hack to use our own WebLinksAddon, not the one preloaded from Hyper.
+function removeOldAddons(term) {
+  console.log("Current addons", term._addonManager._addons);
+  term._addonManager._addons.forEach((addon) => {
+    if (addon?.instance?._useLinkProvider !== undefined) {
+      console.log("Removing old WebLinksAddon instance", addon);
+      addon.instance.dispose();
+    }
+  });
+  console.log("Updated addons", term._addonManager._addons);
+}
 
 exports.decorateTerm = (Term, { React, notify }) => {
   console.log("Decorating term", Term);
@@ -42,7 +55,7 @@ exports.decorateTerm = (Term, { React, notify }) => {
     }
 
     onDecorated(term) {
-      console.log("onDecorated", term);
+      console.log("Custom onDecorated for terminal", term);
       if (term === null) {
         return;
       }
@@ -51,18 +64,28 @@ exports.decorateTerm = (Term, { React, notify }) => {
       }
       this._term = term;
 
+      removeOldAddons(this._term.term);
+
+      // Load custom addons.
+      const commandPastePaddon = new WebLinksAddon(pasteText, {
+        urlRegex: COMMAND_REGEX,
+      });
+      this._term.term.loadAddon(commandPastePaddon);
+      console.log("Loaded commandPastePaddon", commandPastePaddon);
+
+      const webLinksAddon = new WebLinksAddon(openLink, {
+        urlRegex: URL_REGEX,
+      });
+      this._term.term.loadAddon(webLinksAddon);
+      console.log("Loaded webLinksAddon", webLinksAddon);
+
+      // Key listener.
       this._term.termRef.addEventListener("keyup", this.handleKeyUp, false);
 
-      addHighlights(this._term.term);
-
-      // Load the Custom Web Links Addon
-      // const codeLinksAddon = new CodeLinksAddon();
-      // this._term.term.loadAddon(codeLinksAddon);
-      // console.log("Loaded CodeLinksAddon", codeLinksAddon);
-
-      // Observe changes in the terminal content.
-      console.log("Adding onRender listener", this._term.term);
-      this._term.term.onRender(() => addHighlights(this._term.term));
+      // Add highlights based on regexes, now and after changes to terminal content.
+      // TODO: Do we still want this or do it all with WebLinksAddon?
+      // addHighlights(this._term.term);
+      // this._term.term.onRender(() => addHighlights(this._term.term));
     }
 
     handleKeyUp(event) {
