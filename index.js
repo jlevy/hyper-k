@@ -4,8 +4,8 @@ const {
   imageTermProps,
   mapTermsStateToImageProps,
 } = require("./image-handler");
-const addHighlights = require("./regex-highlighter");
-const { WebLinksAddon, openLink, pasteText } = require("./WebLinksAddon");
+const addHighlights = require("./add-highlights");
+const { CustomLinksAddon, openLink, pasteText } = require("./CustomLinksAddon");
 const { URL_REGEX, COMMAND_REGEX } = require("./constants");
 
 const KEY_CODE_BACKSPACE = 8;
@@ -67,13 +67,13 @@ exports.decorateTerm = (Term, { React, notify }) => {
       removeOldAddons(this._term.term);
 
       // Load custom addons.
-      const commandPastePaddon = new WebLinksAddon(pasteText, {
+      const commandPastePaddon = new CustomLinksAddon(pasteText, {
         urlRegex: COMMAND_REGEX,
       });
       this._term.term.loadAddon(commandPastePaddon);
       console.log("Loaded commandPastePaddon", commandPastePaddon);
 
-      const webLinksAddon = new WebLinksAddon(openLink, {
+      const webLinksAddon = new CustomLinksAddon(openLink, {
         urlRegex: URL_REGEX,
       });
       this._term.term.loadAddon(webLinksAddon);
@@ -83,7 +83,7 @@ exports.decorateTerm = (Term, { React, notify }) => {
       this._term.termRef.addEventListener("keyup", this.handleKeyUp, false);
 
       // Add highlights based on regexes, now and after changes to terminal content.
-      // TODO: Do we still want this or do it all with WebLinksAddon?
+      // TODO: Do we still want this or do it all with CustomLinksAddon?
       // addHighlights(this._term.term);
       // this._term.term.onRender(() => addHighlights(this._term.term));
     }

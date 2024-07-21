@@ -1,11 +1,13 @@
 /**
- * Adapted from the xterm.js addon, which is
+ * Adapted from the xterm.js addon
+ * https://github.com/xtermjs/xterm.js/tree/master/addons/addon-web-links
+ * which is
  * Copyright (c) 2019 The xterm.js authors. All rights reserved.
  * @license MIT
  */
 
 const { URL_REGEX } = require("./constants");
-const { WebLinkProvider } = require("./WebLinkProvider");
+const { CustomLinkProvider } = require("./CustomLinkProvider");
 
 function openLink(event, uri, terminal) {
   const newWindow = window.open();
@@ -27,7 +29,7 @@ function pasteText(event, text, terminal) {
   terminal.write(text);
 }
 
-class WebLinksAddon {
+class CustomLinksAddon {
   constructor(handler = openLink, options = {}) {
     this._handler = handler;
     this._options = options;
@@ -40,14 +42,14 @@ class WebLinksAddon {
     const options = this._options;
     const regex = options.urlRegex || URL_REGEX;
     const clickHandler = (event, text) => {
-      console.log("WebLinksAddon: clickHandler", text, event);
+      console.log("CustomLinksAddon: clickHandler", text, event);
       this._handler(event, text, this._terminal);
     };
     this._linkProvider = this._terminal.registerLinkProvider(
-      new WebLinkProvider(this._terminal, regex, clickHandler, options)
+      new CustomLinkProvider(this._terminal, regex, clickHandler, options)
     );
 
-    console.log("WebLinksAddon: activated", this);
+    console.log("CustomLinksAddon: activated", this);
   }
 
   dispose() {
@@ -57,4 +59,4 @@ class WebLinksAddon {
   }
 }
 
-module.exports = { WebLinksAddon, handleLink: openLink, pasteText };
+module.exports = { CustomLinksAddon, openLink, pasteText };

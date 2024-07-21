@@ -1,10 +1,12 @@
 /**
- * Adapted from the xterm.js addon, which is
+ * Adapted from the xterm.js addon
+ * https://github.com/xtermjs/xterm.js/tree/master/addons/addon-web-links
+ * which is
  * Copyright (c) 2019 The xterm.js authors. All rights reserved.
  * @license MIT
  */
 
-class WebLinkProvider {
+class CustomLinkProvider {
   constructor(terminal, regex, handler, options = {}) {
     this._terminal = terminal;
     this._regex = regex;
@@ -219,4 +221,4 @@ class LinkComputer {
   }
 }
 
-module.exports = { WebLinkProvider };
+module.exports = { CustomLinkProvider };
