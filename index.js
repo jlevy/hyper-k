@@ -4,7 +4,7 @@ const {
   imageReducer,
   imageTermProps,
   imageMapTermsState,
-} = require("./image-handler");
+} = require("./image-view");
 const addHighlights = require("./add-highlights");
 const { CustomLinksAddon, openLink, pasteText } = require("./CustomLinksAddon");
 const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("./constants");

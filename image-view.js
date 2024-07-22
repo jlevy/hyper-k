@@ -106,12 +106,10 @@ const imageDecorateTerm = (Term, { React, notify }) => {
           },
         },
         [
-          React.createElement(
-            Term,
-            Object.assign({}, this.props, {
-              onDecorated: this.onDecorated,
-            })
-          ),
+          React.createElement(Term, {
+            ...this.props,
+            onDecorated: this.onDecorated,
+          }),
           this.createImageView(),
         ]
       );
@@ -148,15 +146,15 @@ const imageReducer = (state, action) => {
   return state;
 };
 
-const imageTermProps = (uid, parentProps, props) =>
-  Object.assign(props, {
-    imageViewState: parentProps.imageViewState,
-  });
+const imageTermProps = (uid, parentProps, props) => ({
+  ...props,
+  imageViewState: parentProps.imageViewState,
+});
 
-const imageMapTermsState = (state, map) =>
-  Object.assign(map, {
-    imageViewState: state.ui.imageViewState,
-  });
+const imageMapTermsState = (state, map) => ({
+  ...map,
+  imageViewState: state.ui.imageViewState,
+});
 
 module.exports = {
   imageDecorateTerm,
