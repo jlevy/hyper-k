@@ -1,14 +1,13 @@
 const {
+  imageDecorateTerm,
   imageMiddleware,
   imageReducer,
   imageTermProps,
-  mapTermsStateToImageProps,
+  imageMapTermsState,
 } = require("./image-handler");
 const addHighlights = require("./add-highlights");
 const { CustomLinksAddon, openLink, pasteText } = require("./CustomLinksAddon");
 const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("./constants");
-
-const KEY_CODE_BACKSPACE = 8;
 
 // XXX: Hack to use our own WebLinksAddon, not the one preloaded from Hyper.
 function removeOldAddons(term) {
@@ -25,29 +24,15 @@ function removeOldAddons(term) {
 exports.decorateTerm = (Term, { React, notify }) => {
   console.log("Decorating term", Term);
 
-  return class extends React.Component {
+  const TermWithHighlights = class extends React.Component {
     constructor(props, context) {
       super(props, context);
       this._term = null;
       this.onDecorated = this.onDecorated.bind(this);
-      this.handleKeyUp = this.handleKeyUp.bind(this);
-      this.setImageView = this.setImageView.bind(this);
-    }
-
-    componentDidUpdate(prevProps) {
-      if (prevProps.imageViewState !== this.props.imageViewState) {
-        const { url } = this.props.imageViewState || {};
-        this.setImageView(url);
-      }
     }
 
     componentWillUnmount() {
       if (this._term) {
-        this._term.termRef.removeEventListener(
-          "keyup",
-          this.handleKeyUp,
-          false
-        );
         if (this._term.term) {
           this._term.term.offRender(() => addHighlights(this._term.term));
         }
@@ -55,7 +40,7 @@ exports.decorateTerm = (Term, { React, notify }) => {
     }
 
     onDecorated(term) {
-      console.log("Custom onDecorated for terminal", term);
+      console.log("onDecorated for terminal", term);
       if (term === null) {
         return;
       }
@@ -64,9 +49,10 @@ exports.decorateTerm = (Term, { React, notify }) => {
       }
       this._term = term;
 
+      // Remove the old web links addon.
       removeOldAddons(this._term.term);
 
-      // Load custom addons.
+      // Load custom addons for links and click-to-paste.
       const commandPastePaddon = new CustomLinksAddon(pasteText, {
         urlRegex: COMMAND_OR_PATH_REGEX,
       });
@@ -79,9 +65,6 @@ exports.decorateTerm = (Term, { React, notify }) => {
       this._term.term.loadAddon(webLinksAddon);
       console.log("Loaded webLinksAddon", webLinksAddon);
 
-      // Key listener.
-      this._term.termRef.addEventListener("keyup", this.handleKeyUp, false);
-
       // Add highlights based on regexes, now and after changes to terminal content.
       addHighlights(this._term.term, COMMAND_OR_PATH_REGEX);
       this._term.term.onRender(() =>
@@ -89,83 +72,21 @@ exports.decorateTerm = (Term, { React, notify }) => {
       );
     }
 
-    handleKeyUp(event) {
-      // Hide image on keypress.
-      const { keyCode } = event;
-      if (keyCode === KEY_CODE_BACKSPACE) {
-        this.setImageView(null);
-      }
-    }
-
-    createImageView() {
-      if (!this.imageView) {
-        this.imageView = React.createElement("img", {
-          style: {
-            position: "absolute",
-            top: 0,
-            right: 0,
-            height: "auto",
-            maxWidth: "35%",
-            maxHeight: "35%",
-            display: "none",
-            // Fade in/out effect:
-            opacity: 0,
-            transition: "opacity 0.4s ease-in-out",
-          },
-          src: null,
-          id: "image-view",
-        });
-      }
-      return this.imageView;
-    }
-
-    setImageView(imageUrl) {
-      let imageView = document.getElementById("image-view");
-      if (!imageView) {
-        return;
-      }
-      if (imageUrl) {
-        imageView.style.display = "block";
-        setTimeout(() => {
-          imageView.style.opacity = 1; // Fade in
-        }, 0);
-        imageView.src = imageUrl;
-      } else {
-        imageView.style.opacity = 0;
-        setTimeout(() => {
-          imageView.style.display = "none";
-        }, 400); // Match the duration of the opacity transition.
-      }
-    }
-
     render() {
-      console.log("Rendering term", this.props);
-
-      return React.createElement(
-        "div",
-        {
-          style: {
-            width: "100%",
-            height: "100%",
-          },
-        },
-        [
-          React.createElement(
-            Term,
-            Object.assign({}, this.props, {
-              onDecorated: this.onDecorated,
-            })
-          ),
-          this.createImageView(),
-        ]
-      );
+      return React.createElement(Term, {
+        ...this.props,
+        onDecorated: this.onDecorated,
+      });
     }
   };
+
+  // Decorate term for image view.
+  return imageDecorateTerm(TermWithHighlights, { React, notify });
 };
 
 exports.middleware = imageMiddleware;
 exports.reduceUI = imageReducer;
-exports.mapTermsState = mapTermsStateToImageProps;
+exports.mapTermsState = imageMapTermsState;
 exports.getTermGroupProps = imageTermProps;
 exports.getTermProps = imageTermProps;
 
