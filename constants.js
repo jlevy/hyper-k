@@ -26,7 +26,7 @@ const COMMAND_REGEX = /`([^`]+)`/;
 
 // File paths with alphanum files and paths (no spaces) and the most common file extensions.
 const FILE_PATH_REGEX =
-  /\b([/\p{L}\p{N}_.@$%&~+-]+[.](?:txt|htm|html|json|js|css|md|py|yml|yaml|csv|pdf|docx|xls))\b/u;
+  /\b([/\p{L}\p{N}_.@$%&~+-]+[.](?:txt|htm|html|json|js|css|md|py|yml|yaml|toml|csv|pdf|docx|xls|png|jpg|jpeg|gif|webp))\b/u;
 
 const COMMAND_OR_PATH_REGEX = new RegExp(
   `(?:${COMMAND_REGEX.source}|${FILE_PATH_REGEX.source})`,
