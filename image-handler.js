@@ -1,9 +1,9 @@
-const { IMAGE_URL_RE_PAT } = require("./constants");
+const { IMAGE_URL_REGEX } = require("./constants");
 
 const imageMiddleware = (store) => (next) => (action) => {
   if (action.type === "SESSION_ADD_DATA") {
     const { data } = action;
-    const match = data.match(new RegExp(IMAGE_URL_RE_PAT));
+    const match = data.match(new RegExp(IMAGE_URL_REGEX, "u"));
     if (match) {
       const imageUrl = match[0];
       console.log("image-handler: Loading image URL", imageUrl);

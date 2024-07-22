@@ -1,6 +1,6 @@
-const HIGHLIGHT_BG = "#5a5a12";
+const HIGHLIGHT_BG = "#2f3f3c";
 
-const addHighlights = (term, regex_pat) => {
+const addHighlights = (term, highlightRegex) => {
   const buffer = term.buffer.active;
   const decorationService = term._core._decorationService;
 
@@ -12,7 +12,8 @@ const addHighlights = (term, regex_pat) => {
 
   // Decorate every match based on the regex.
   for (let lineIndex = 0; lineIndex < buffer.length; lineIndex++) {
-    const regex = new RegExp(regex_pat, "g");
+    const regex = new RegExp(highlightRegex.source, "gu"); // Clear state.
+
     const line = buffer.getLine(lineIndex);
     if (!line) continue;
     const lineContent = line.translateToString(true);

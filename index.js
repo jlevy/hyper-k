@@ -6,7 +6,7 @@ const {
 } = require("./image-handler");
 const addHighlights = require("./add-highlights");
 const { CustomLinksAddon, openLink, pasteText } = require("./CustomLinksAddon");
-const { COMMAND_RE_PAT, URL_RE_PAT } = require("./constants");
+const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("./constants");
 
 const KEY_CODE_BACKSPACE = 8;
 
@@ -68,13 +68,13 @@ exports.decorateTerm = (Term, { React, notify }) => {
 
       // Load custom addons.
       const commandPastePaddon = new CustomLinksAddon(pasteText, {
-        urlRegex: COMMAND_RE_PAT,
+        urlRegex: COMMAND_OR_PATH_REGEX,
       });
       this._term.term.loadAddon(commandPastePaddon);
       console.log("Loaded commandPastePaddon", commandPastePaddon);
 
       const webLinksAddon = new CustomLinksAddon(openLink, {
-        urlRegex: URL_RE_PAT,
+        urlRegex: URL_REGEX,
       });
       this._term.term.loadAddon(webLinksAddon);
       console.log("Loaded webLinksAddon", webLinksAddon);
@@ -83,9 +83,9 @@ exports.decorateTerm = (Term, { React, notify }) => {
       this._term.termRef.addEventListener("keyup", this.handleKeyUp, false);
 
       // Add highlights based on regexes, now and after changes to terminal content.
-      addHighlights(this._term.term, COMMAND_RE_PAT);
+      addHighlights(this._term.term, COMMAND_OR_PATH_REGEX);
       this._term.term.onRender(() =>
-        addHighlights(this._term.term, COMMAND_RE_PAT)
+        addHighlights(this._term.term, COMMAND_OR_PATH_REGEX)
       );
     }
 

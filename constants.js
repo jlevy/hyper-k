@@ -14,12 +14,29 @@
 //
 // Note the first capturing group, if present, is what we pass to handlers.
 // So use non-capturing groups (?:...) if necessary.
-const URL_RE_PAT =
-  /((?:https?|HTTPS?):[/]{2}[^\s"'!*(){}|\\\^<>`]*[^\s"':,.!?{}|\\\^~\[\]`()<>])/;
+const URL_REGEX =
+  /(?:https?|HTTPS?):[/]{2}[^\s"'!*(){}|\\\^<>`]*[^\s"':,.!?{}|\\\^~\[\]`()<>]/;
 
-const IMAGE_URL_RE_PAT =
+// URLs with an explicit image file extension.
+const IMAGE_URL_REGEX =
   /(?:https?|HTTPS?):[/]{2}[^\s"'!*(){}|\\\^<>`]*[^\s"':,.!?{}|\\\^~\[\]`()<>]\.(?:png|jpg|jpeg|gif|webp)/;
 
-const COMMAND_RE_PAT = /`([^`]+)`/;
+// Code commands or excerpt like `ls`.
+const COMMAND_REGEX = /`([^`]+)`/;
 
-module.exports = { URL_RE_PAT, IMAGE_URL_RE_PAT, COMMAND_RE_PAT };
+// File paths with alphanum files and paths (no spaces) and the most common file extensions.
+const FILE_PATH_REGEX =
+  /\b([/\p{L}\p{N}_.@$%&~+-]+[.](?:txt|htm|html|json|js|css|md|py|yml|yaml|csv|pdf|docx|xls))\b/u;
+
+const COMMAND_OR_PATH_REGEX = new RegExp(
+  `(?:${COMMAND_REGEX.source}|${FILE_PATH_REGEX.source})`,
+  "u"
+);
+
+module.exports = {
+  URL_REGEX,
+  IMAGE_URL_REGEX,
+  COMMAND_REGEX,
+  FILE_PATH_REGEX,
+  COMMAND_OR_PATH_REGEX,
+};
