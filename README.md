@@ -1,6 +1,6 @@
 # hyper-easy
 
-Some useful conveniences for [Hyper](https://hyper.is/) to make it much more usable
+A plugin for the [Hyper](https://hyper.is/) terminal to make it much more usable
 than a regular terminal:
 
 - Click-to-type commands if they appear in the terminal, based on backtick expressions. For example, if \`ls -l\` appears in the terminal, you can click on it and it will type that command on the command line.
@@ -8,7 +8,8 @@ than a regular terminal:
 - Auto-view popover of image URLs in terminal. Image appears in upper right. Hit backspace to close image popover.
 - Clickable URLs (Hyper has this by default).
 
-This makes for a useful base for a better command-line experience for many workflows
+These seem like small features but it makes for a useful base for a better
+command-line experience for many workflows
 
 Under development but works locally.
 
