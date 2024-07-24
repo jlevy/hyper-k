@@ -7,9 +7,10 @@
  */
 
 class CustomLinkProvider {
-  constructor(terminal, regex, handler, options = {}) {
+  constructor(terminal, regex, filter, handler, options = {}) {
     this._terminal = terminal;
     this._regex = regex;
+    this._filter = filter;
     this._handler = handler;
     this._options = options;
   }
@@ -45,7 +46,7 @@ class CustomLinkProvider {
 }
 
 class LinkComputer {
-  static computeLink(y, regex, terminal, activate) {
+  static computeLink(y, regex, terminal, activate, filter) {
     const rex = new RegExp(regex.source, (regex.flags || "") + "g");
 
     const [lines, startLineIndex] = LinkComputer._getWindowedLineStrings(
@@ -58,6 +59,10 @@ class LinkComputer {
     const result = [];
 
     while ((match = rex.exec(line))) {
+      if (filter && !filter(line, match)) {
+        continue;
+      }
+
       // Check for first capturing group, if it exists, otherwise the whole match.
       const matchText = match[1] || match[0];
       const fullText = match[0];

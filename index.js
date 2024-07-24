@@ -21,6 +21,19 @@ function removeOldAddons(term) {
   console.log("Updated addons", term._addonManager._addons);
 }
 
+// Return true if the match is not a portion of a URL path.
+const notUrlPath = (line, pathMatch) => {
+  if (!pathMatch) {
+    return true;
+  }
+  const startIndex = pathMatch.index;
+  // Negative lookbehind to confirmt he preceding text is not the start of a URL.
+  const precedingText = line.substring(0, startIndex);
+  const urlRegex = /(?:https?:\/\/?)$/;
+
+  return !urlRegex.test(precedingText);
+};
+
 exports.decorateTerm = (Term, { React, notify }) => {
   console.log("Decorating term", Term);
 
@@ -54,6 +67,7 @@ exports.decorateTerm = (Term, { React, notify }) => {
 
       // Load custom addons for links and click-to-paste.
       const commandPastePaddon = new CustomLinksAddon(pasteText, {
+        filter: notUrlPath,
         urlRegex: COMMAND_OR_PATH_REGEX,
       });
       this._term.term.loadAddon(commandPastePaddon);
@@ -66,9 +80,9 @@ exports.decorateTerm = (Term, { React, notify }) => {
       console.log("Loaded webLinksAddon", webLinksAddon);
 
       // Add highlights based on regexes, now and after changes to terminal content.
-      addHighlights(this._term.term, COMMAND_OR_PATH_REGEX);
+      addHighlights(this._term.term, COMMAND_OR_PATH_REGEX, notUrlPath);
       this._term.term.onRender(() =>
-        addHighlights(this._term.term, COMMAND_OR_PATH_REGEX)
+        addHighlights(this._term.term, COMMAND_OR_PATH_REGEX, notUrlPath)
       );
     }
 

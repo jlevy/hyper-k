@@ -1,6 +1,6 @@
 const HIGHLIGHT_BG = "#2f3f3c";
 
-const addHighlights = (term, highlightRegex) => {
+const addHighlights = (term, highlightRegex, filter) => {
   const buffer = term.buffer.active;
   const decorationService = term._core._decorationService;
 
@@ -19,6 +19,9 @@ const addHighlights = (term, highlightRegex) => {
     const lineContent = line.translateToString(true);
     let match;
     while ((match = regex.exec(lineContent)) !== null) {
+      if (filter && !filter(lineContent, match)) {
+        continue;
+      }
       // Highlight first capturing group, if it is present, otherwise the whole match.
       let hl_start, hl_end;
       if (match[1]) {

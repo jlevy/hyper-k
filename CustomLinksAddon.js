@@ -66,12 +66,19 @@ class CustomLinksAddon {
     this._terminal = terminal;
     const options = this._options;
     const regex = options.urlRegex || URL_REGEX;
+    const filter = options.filter || null;
     const clickHandler = (event, text) => {
       console.log("CustomLinksAddon: clickHandler", text, event);
       this._handler(event, text, this._terminal);
     };
     this._linkProvider = this._terminal.registerLinkProvider(
-      new CustomLinkProvider(this._terminal, regex, clickHandler, options)
+      new CustomLinkProvider(
+        this._terminal,
+        regex,
+        filter,
+        clickHandler,
+        options
+      )
     );
 
     console.log("CustomLinksAddon: activated", this);
