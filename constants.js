@@ -21,14 +21,14 @@ const URL_REGEX =
 const IMAGE_URL_REGEX =
   /(?:https?|HTTPS?):[/]{2}[^\s"'!*(){}|\\\^<>`]*[^\s"':,.!?{}|\\\^~\[\]`()<>]\.(?:png|jpg|jpeg|gif|webp)/;
 
-// Code commands or excerpt like `ls`.
-const COMMAND_REGEX = /`([^`]+)`/;
+// Code commands or excerpt like `ls`. Exclude HTML tags in code.
+const COMMAND_REGEX = /`([^`<> ][^`<>]*)`/;
 
 // File paths with alphanum files and paths (no spaces) and the most common file extensions.
 // Don't match paths with //. Lookahead at end included so we never match files with .txt. or
 // other externsions in the middle of a filename.
 const FILE_PATH_REGEX =
-  /(?:(?!\/{2})[/\p{L}\p{N}_.@$%&~+-])+[.](?:txt|htm|html|json|js|css|md|py|yml|yaml|toml|csv|pdf|docx|xls|png|jpg|jpeg|gif|webp)(?=$|[^/\p{L}\p{N}_.@$%&~+-])/u;
+  /(?:(?!\/{2})[/\p{L}\p{N}_.@$%&~+-])+[.](?:txt|log|htm|html|json|js|css|md|py|yml|yaml|toml|csv|pdf|docx|xls|png|jpg|jpeg|gif|webp)(?=$|[^/\p{L}\p{N}_.@$%&~+-])/u;
 
 const COMMAND_OR_PATH_REGEX = new RegExp(
   `(?:${COMMAND_REGEX.source}|${FILE_PATH_REGEX.source})`,
