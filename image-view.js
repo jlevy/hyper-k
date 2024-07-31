@@ -3,7 +3,7 @@ const { IMAGE_URL_REGEX } = require("./constants");
 const KEY_CODE_BACKSPACE = 8;
 const KEY_CODE_ESCAPE = 27;
 
-const imageDecorateTerm = (Term, { React, notify }) => {
+const imageDecorateTerm = (Term, { React }) => {
   console.log("Decorating term for image view", Term);
 
   return class extends React.Component {
