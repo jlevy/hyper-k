@@ -1,3 +1,5 @@
+const { decorateConfig: colorsDecorateConfig } = require("./colors");
+
 const {
   decorateTerm: imageDecorateTerm,
   middleware: imageMiddleware,
@@ -27,5 +29,7 @@ exports.reduceUI = imageReducer;
 exports.mapTermsState = imageMapTermsState;
 exports.getTermGroupProps = imageGetTermProps;
 exports.getTermProps = imageGetTermProps;
+
+exports.decorateConfig = colorsDecorateConfig;
 
 console.log("hyper-easy loaded");
