@@ -80,10 +80,11 @@ exports.decorateTerm = (Term, { React, notify }) => {
       console.log("Loaded webLinksAddon", webLinksAddon);
 
       // Add highlights based on regexes, now and after changes to terminal content.
-      addHighlights(this._term.term, COMMAND_OR_PATH_REGEX, notUrlPath);
-      this._term.term.onRender(() =>
-        addHighlights(this._term.term, COMMAND_OR_PATH_REGEX, notUrlPath)
-      );
+      // (This approach seems too slow. Disabling for now.)
+      // addHighlights(this._term.term, COMMAND_OR_PATH_REGEX, notUrlPath);
+      // this._term.term.onRender(() =>
+      //   addHighlights(this._term.term, COMMAND_OR_PATH_REGEX, notUrlPath)
+      // );
     }
 
     render() {

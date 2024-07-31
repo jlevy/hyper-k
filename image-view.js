@@ -1,6 +1,7 @@
 const { IMAGE_URL_REGEX } = require("./constants");
 
 const KEY_CODE_BACKSPACE = 8;
+const KEY_CODE_ESCAPE = 27;
 
 const imageDecorateTerm = (Term, { React, notify }) => {
   console.log("Decorating term for image view", Term);
@@ -48,7 +49,7 @@ const imageDecorateTerm = (Term, { React, notify }) => {
     handleKeyUp(event) {
       // Hide image on keypress.
       const { keyCode } = event;
-      if (keyCode === KEY_CODE_BACKSPACE) {
+      if (keyCode === KEY_CODE_BACKSPACE || keyCode === KEY_CODE_ESCAPE) {
         this.setImageView(null);
       }
     }

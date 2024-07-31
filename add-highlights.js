@@ -49,8 +49,7 @@ const addHighlights = (term, highlightRegex, filter) => {
   term.refresh(0, buffer.length - 1);
 
   console.log(
-    `addHighlights inserted ${term.decorations.length} decorations on terminal`,
-    term
+    `addHighlights registered ${term.decorations.length} decorations`
   );
 };
 
