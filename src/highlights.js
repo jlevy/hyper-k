@@ -2,7 +2,7 @@ const addHighlights = require("./add-highlights");
 const { COMMAND_OR_PATH_REGEX } = require("./constants");
 const { notUrlPath } = require("./utils");
 
-const highlightsDecorateTerm = (Term, { React }) => {
+const decorateTerm = (Term, { React }) => {
   return class extends React.Component {
     constructor(props, context) {
       super(props, context);
@@ -41,4 +41,4 @@ const highlightsDecorateTerm = (Term, { React }) => {
   };
 };
 
-module.exports = { highlightsDecorateTerm };
+module.exports = { decorateTerm };

@@ -1,12 +1,12 @@
 const {
-  imageDecorateTerm,
-  imageMiddleware,
-  imageReducer,
-  imageTermProps,
-  imageMapTermsState,
+  decorateTerm: imageDecorateTerm,
+  middleware: imageMiddleware,
+  reducer: imageReducer,
+  getTermProps: imageGetTermProps,
+  mapTermsState: imageMapTermsState,
 } = require("./image-view");
-const { linkAddonsDecorateTerm } = require("./link-addons");
-const { highlightsDecorateTerm } = require("./highlights");
+const { decorateTerm: linkAddonsDecorateTerm } = require("./link-addons");
+const { decorateTerm: highlightsDecorateTerm } = require("./highlights");
 
 exports.decorateTerm = (Term, { React, notify }) => {
   console.log("Decorating term", Term);
@@ -25,7 +25,7 @@ exports.decorateTerm = (Term, { React, notify }) => {
 exports.middleware = imageMiddleware;
 exports.reduceUI = imageReducer;
 exports.mapTermsState = imageMapTermsState;
-exports.getTermGroupProps = imageTermProps;
-exports.getTermProps = imageTermProps;
+exports.getTermGroupProps = imageGetTermProps;
+exports.getTermProps = imageGetTermProps;
 
 console.log("hyper-easy loaded");

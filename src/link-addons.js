@@ -14,7 +14,7 @@ function removeOldAddons(term) {
   console.log("Updated addons", term._addonManager._addons);
 }
 
-const linkAddonsDecorateTerm = (Term, { React }) => {
+const decorateTerm = (Term, { React }) => {
   return class extends React.Component {
     constructor(props, context) {
       super(props, context);
@@ -58,4 +58,4 @@ const linkAddonsDecorateTerm = (Term, { React }) => {
   };
 };
 
-module.exports = { linkAddonsDecorateTerm };
+module.exports = { decorateTerm };

@@ -3,7 +3,7 @@ const { IMAGE_URL_REGEX } = require("./constants");
 const KEY_CODE_BACKSPACE = 8;
 const KEY_CODE_ESCAPE = 27;
 
-const imageDecorateTerm = (Term, { React }) => {
+const decorateTerm = (Term, { React }) => {
   console.log("Decorating term for image view", Term);
 
   return class extends React.Component {
@@ -118,7 +118,7 @@ const imageDecorateTerm = (Term, { React }) => {
   };
 };
 
-const imageMiddleware = (store) => (next) => (action) => {
+const middleware = (store) => (next) => (action) => {
   if (action.type === "SESSION_ADD_DATA") {
     const { data } = action;
     const match = data.match(new RegExp(IMAGE_URL_REGEX, "u"));
@@ -136,7 +136,7 @@ const imageMiddleware = (store) => (next) => (action) => {
   next(action);
 };
 
-const imageReducer = (state, action) => {
+const reducer = (state, action) => {
   switch (action.type) {
     case "HOOK_IMAGE":
       console.log("Reduce HOOK_IMAGE", action);
@@ -147,20 +147,20 @@ const imageReducer = (state, action) => {
   return state;
 };
 
-const imageTermProps = (uid, parentProps, props) => ({
+const getTermProps = (uid, parentProps, props) => ({
   ...props,
   imageViewState: parentProps.imageViewState,
 });
 
-const imageMapTermsState = (state, map) => ({
+const mapTermsState = (state, map) => ({
   ...map,
   imageViewState: state.ui.imageViewState,
 });
 
 module.exports = {
-  imageDecorateTerm,
-  imageMiddleware,
-  imageReducer,
-  imageTermProps,
-  imageMapTermsState,
+  decorateTerm,
+  middleware,
+  reducer,
+  getTermProps,
+  mapTermsState,
 };
