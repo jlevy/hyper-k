@@ -6,7 +6,6 @@
  * @license MIT
  */
 
-const { URL_REGEX } = require("./constants");
 const { CustomLinkProvider } = require("./CustomLinkProvider");
 
 function openLink(event, uri, terminal) {
@@ -41,8 +40,7 @@ function pasteText(event, text, terminal) {
     sendChar(text[i]);
   }
 
-  // Experimented with a delay to make it look like typing but
-  // doesn't seem necessary.
+  // Experimented with a delay to make it look like typing but doesn't seem necessary.
   // let i = 0;
   // function typeNextChar() {
   //   if (i < text.length) {
@@ -55,7 +53,8 @@ function pasteText(event, text, terminal) {
 }
 
 class CustomLinksAddon {
-  constructor(handler = openLink, options = {}) {
+  constructor(matchFunction, handler = openLink, options = {}) {
+    this._matchFunction = matchFunction;
     this._handler = handler;
     this._options = options;
     this._terminal = undefined;
@@ -65,7 +64,6 @@ class CustomLinksAddon {
   activate(terminal) {
     this._terminal = terminal;
     const options = this._options;
-    const regex = options.urlRegex || URL_REGEX;
     const filter = options.filter || null;
     const clickHandler = (event, text) => {
       console.log("CustomLinksAddon: clickHandler", text, event);
@@ -74,7 +72,7 @@ class CustomLinksAddon {
     this._linkProvider = this._terminal.registerLinkProvider(
       new CustomLinkProvider(
         this._terminal,
-        regex,
+        this._matchFunction,
         filter,
         clickHandler,
         options

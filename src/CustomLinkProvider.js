@@ -7,9 +7,25 @@
  */
 
 class CustomLinkProvider {
-  constructor(terminal, regex, filter, handler, options = {}) {
+  constructor(terminal, matchFunction, filter, handler, options = {}) {
     this._terminal = terminal;
-    this._regex = regex;
+
+    // If matchFunction is a string or regex, convert it to a function.
+    if (typeof matchFunction !== "function") {
+      const regex = new RegExp(
+        matchFunction.source,
+        (matchFunction.flags || "") + "g"
+      );
+      matchFunction = (text) =>
+        [...text.matchAll(regex)].map((match) => ({
+          // Match text is the first capturing group, if present, or otherwise the whole match.
+          matchText: match[1] || match[0],
+          fullText: match[0],
+          index: match.index,
+        }));
+    }
+    this._matchFunction = matchFunction;
+
     this._filter = filter;
     this._handler = handler;
     this._options = options;
@@ -18,9 +34,12 @@ class CustomLinkProvider {
   provideLinks(y, callback) {
     const links = LinkComputer.computeLink(
       y,
-      this._regex,
+      this._matchFunction,
       this._terminal,
-      this._handler
+      this._handler,
+      this._filter,
+      this._upRegex,
+      this._downRegex
     );
     callback(this._addCallbacks(links));
   }
@@ -46,26 +65,23 @@ class CustomLinkProvider {
 }
 
 class LinkComputer {
-  static computeLink(y, regex, terminal, activate, filter) {
-    const rex = new RegExp(regex.source, (regex.flags || "") + "g");
-
+  static computeLink(y, matchFunction, terminal, activate, filter) {
+    // Get the entire line, handling wrapped lines as needed.
     const [lines, startLineIndex] = LinkComputer._getWindowedLineStrings(
       y - 1,
       terminal
     );
     const line = lines.join("");
 
-    let match;
+    // Find all matches in the line.
+    const matches = matchFunction(line, y, terminal);
     const result = [];
 
-    while ((match = rex.exec(line))) {
+    for (const match of matches) {
+      // Check extra filter, if provided.
       if (filter && !filter(line, match)) {
         continue;
       }
-
-      // Check for first capturing group, if it exists, otherwise the whole match.
-      const matchText = match[1] || match[0];
-      const fullText = match[0];
 
       // map string positions back to buffer positions
       // values are 0-based right side excluding
@@ -79,7 +95,7 @@ class LinkComputer {
         terminal,
         startY,
         startX,
-        fullText.length // TODO: Hover should use match text only instead?
+        match.fullText.length // TODO: Hover should use match text only instead?
       );
 
       if (startY === -1 || startX === -1 || endY === -1 || endX === -1) {
@@ -98,9 +114,10 @@ class LinkComputer {
         },
       };
 
-      result.push({ range, text: matchText, activate });
+      result.push({ range, text: match.matchText, activate });
     }
 
+    // console.log("computeLink result", y, result);
     return result;
   }
 

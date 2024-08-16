@@ -1,8 +1,9 @@
 const { CustomLinksAddon, openLink, pasteText } = require("./CustomLinksAddon");
 const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("./constants");
 const { notUrlPath } = require("./utils");
+const { insideMarkdownFenced } = require("./link-patterns");
 
-// XXX: Hack to use our own WebLinksAddon, not the one preloaded from Hyper.
+// XXX: This is a hack to use our own WebLinksAddon, not the one preloaded from Hyper.
 function removeOldAddons(term) {
   console.log("Current addons", term._addonManager._addons);
   term._addonManager._addons.forEach((addon) => {
@@ -34,17 +35,26 @@ const decorateTerm = (Term, { React }) => {
       // Remove the old web links addon.
       removeOldAddons(this._term.term);
 
-      // Load custom addons for links and click-to-paste.
-      const commandPasteAddon = new CustomLinksAddon(pasteText, {
-        filter: notUrlPath,
-        urlRegex: COMMAND_OR_PATH_REGEX,
-      });
+      // Load custom addon for click-to-paste on commands or paths.
+      const commandPasteAddon = new CustomLinksAddon(
+        COMMAND_OR_PATH_REGEX,
+        pasteText,
+        {
+          filter: notUrlPath,
+        }
+      );
       this._term.term.loadAddon(commandPasteAddon);
       console.log("Loaded commandPastePaddon", commandPasteAddon);
 
-      const webLinksAddon = new CustomLinksAddon(openLink, {
-        urlRegex: URL_REGEX,
-      });
+      const fencedCodeBlockAddon = new CustomLinksAddon(
+        insideMarkdownFenced,
+        pasteText
+      );
+      this._term.term.loadAddon(fencedCodeBlockAddon);
+      console.log("Loaded fencedCodeBlockAddon", fencedCodeBlockAddon);
+
+      // Load custom addon for URLs.
+      const webLinksAddon = new CustomLinksAddon(URL_REGEX, openLink);
       this._term.term.loadAddon(webLinksAddon);
       console.log("Loaded webLinksAddon", webLinksAddon);
     }
