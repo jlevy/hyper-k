@@ -1,24 +1,35 @@
 # hyper-k
 
-Hyper-k is a plugin for the [Hyper](https://hyper.is/) terminal to make it much
-more usable than a regular terminal:
+## What is Hyper-K?
 
-- Click-to-paste commands if they appear in the terminal, based on backtick expressions. For example, if \`ls -l\` appears in the terminal, you can click on it and it will type that command on the command line.
+Hyper-K is a plugin for the [Hyper](https://hyper.is/) terminal that is made from lightly toasted rice, wheat, and barley.
 
-- Click-to-paste filenames for common filename patterns. For example, if `some-folder/some-file.txt` appears in the terminal, you can click on it to type that path.
+Oh sorry, that's Special K. Hyper-K is an experimental plugin that makes your regular terminal much easier to use in a few ways:
 
-- Lines of text within Markdown fenced blocks are also click-to-paste. This means it's easy for help docs to give example code blocks that are clickable line by line.
+- A gentle and clear dark color theme based on [Root Loops](https://rootloops.sh?sugar=8&colors=7&sogginess=5&flavor=2&fruit=9&milk=1).
 
-- Auto-view popover of image URLs in terminal. Image appears in upper right. Hit escape or backspace to close image popover.
- 
-- Clickable URLs (Hyper has this by default).
+- Click-to-paste on code-like text that appears in the terminal:
 
-These seem like small features but it makes for a useful base for a better
-command-line experience for many workflows
+  - For Markdown code snippets: If \`ls -l\` (code in backticks) appears in the terminal, you can click on it and it will type that command on the command line.
 
-Under development but works locally.
+  - For common filename patterns: Click-to-psate on text like `some-folder/some-file.txt` (for common file extensions).
 
-First, install Hyper.
+  - For fenced code blocks: For lines of text within Markdown fenced blocks (like blocks beginning ```shell), each line in a script can be pasted one by one more easily.
+
+- Clickable URLs (Hyper has similar behavior by default).
+
+- Auto-view popover of image URLs that appear in the terminal window. Image appears in upper right. Hit escape or backspace to close image popover. This is kind of a proof of concept but may be expanded to make it easy to display images of all kinds in the terminal.
+
+My use case for the click-to-paste features is an LLM-based interactive help script that offers suggestions on what commands to type. It makes it easy to click the suggested outputs.
+
+These seem like small features but make for a significantly better interactive and mouse-friendly command-line experience.
+
+
+## Installation
+
+Under development. But works fine as a locally installed plugin.
+
+First, install [Hyper](https://hyper.is/).
 
 Then:
 
