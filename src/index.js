@@ -32,4 +32,4 @@ exports.getTermProps = imageGetTermProps;
 
 exports.decorateConfig = colorsDecorateConfig;
 
-console.log("hyper-easy loaded");
+console.log("hyper-k loaded");
