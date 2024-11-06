@@ -24,7 +24,6 @@ My use case for the click-to-paste features is an LLM-based interactive help scr
 
 These seem like small features but make for a significantly better interactive and mouse-friendly command-line experience.
 
-
 ## Installation
 
 Under development. But works fine as a locally installed plugin.

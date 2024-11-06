@@ -27,8 +27,26 @@ const COMMAND_REGEX = /`([^`<> ][^`<>]*)`/;
 // File paths with alphanum files and paths (no spaces) and the most common file extensions.
 // Don't match paths with //. Lookahead at end included so we never match files with .txt. or
 // other externsions in the middle of a filename.
-const FILE_PATH_REGEX =
-  /(?:(?!\/{2})[/\p{L}\p{N}_.@$%&~+-])+[.](?:txt|log|htm|html|json|js|css|md|py|yml|yaml|toml|csv|pdf|docx|xls|png|jpg|jpeg|gif|webp)(?=$|[^/\p{L}\p{N}_.@$%&~+-])/u;
+
+const FILE_EXTENSIONS =
+  "txt|log|gz|htm|html|json|js|css|md|py|yml|yaml|toml|csv|tsv|pdf|docx|rtf|xls|png|jpg|jpeg|gif|webp|sh|whl|zip|mp3|mp4|m4a|wav|avi|sh|xsh|ksh|diff|patch";
+const FILENAME_CHARS = "/\\p{L}\\p{N}_.@$%&~+-";
+
+const UNQUOTED_PATH_REGEX = new RegExp(
+  `(?:(?!\/{2})[${FILENAME_CHARS}])+[.](?:${FILE_EXTENSIONS})(?=$|[^${FILENAME_CHARS}])`,
+  "u"
+);
+
+// Allow 'filename with spaces.txt' as long as it's in single quotes.
+const QUOTED_PATH_REGEX = new RegExp(
+  `@?'(?:(?!\/{2})[ ${FILENAME_CHARS}])+[.](?:${FILE_EXTENSIONS})(?=$|[^ ${FILENAME_CHARS}])'`,
+  "u"
+);
+
+const FILE_PATH_REGEX = new RegExp(
+  `(?:${QUOTED_PATH_REGEX.source}|${UNQUOTED_PATH_REGEX.source})`,
+  "u"
+);
 
 const COMMAND_OR_PATH_REGEX = new RegExp(
   `(?:${COMMAND_REGEX.source}|${FILE_PATH_REGEX.source})`,
@@ -39,6 +57,8 @@ module.exports = {
   URL_REGEX,
   IMAGE_URL_REGEX,
   COMMAND_REGEX,
+  UNQUOTED_PATH_REGEX,
+  QUOTED_PATH_REGEX,
   FILE_PATH_REGEX,
   COMMAND_OR_PATH_REGEX,
 };
