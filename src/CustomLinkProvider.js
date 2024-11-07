@@ -29,6 +29,10 @@ class CustomLinkProvider {
     this._filter = filter;
     this._handler = handler;
     this._options = options;
+
+    // Assume `hover` and `leave` are arrays
+    this._hoverCallbacks = options.hover || [];
+    this._leaveCallbacks = options.leave || [];
   }
 
   provideLinks(y, callback) {
@@ -46,19 +50,20 @@ class CustomLinkProvider {
 
   _addCallbacks(links) {
     return links.map((link) => {
-      link.leave = (event, uri) => {
-        if (this._options.leave) {
-          this._options.leave(event, uri);
+      link.leave = (event, text) => {
+        // Execute all leave callbacks.
+        for (const callback of this._leaveCallbacks) {
+          callback(event, text, link.range);
         }
-        event.target.style.cursor = "auto";
       };
-      link.hover = (event, uri) => {
-        if (this._options.hover) {
-          const { range } = link;
-          this._options.hover(event, uri, range);
+
+      link.hover = (event, text) => {
+        // Execute all hover callbacks.
+        for (const callback of this._hoverCallbacks) {
+          callback(event, text, link.range);
         }
-        event.target.style.cursor = "pointer";
       };
+
       return link;
     });
   }
