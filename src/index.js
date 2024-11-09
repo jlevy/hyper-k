@@ -13,8 +13,10 @@ const { decorateTerm: highlightsDecorateTerm } = require("./highlights");
 exports.decorateTerm = (Term, { React, notify }) => {
   console.log("Decorating term", Term);
 
+  let DecoratedTerm = Term;
+
   // Apply decorations in sequence.
-  let DecoratedTerm = linkAddonsDecorateTerm(Term, { React });
+  DecoratedTerm = linkAddonsDecorateTerm(DecoratedTerm, { React });
 
   // Highlights is kind of slow and may not be necessary. Disable for now.
   // DecoratedTerm = highlightsDecorateTerm(DecoratedTerm, { React });

@@ -29,7 +29,7 @@ const COMMAND_REGEX = /`([^`<> ][^`<>]*)`/;
 // other externsions in the middle of a filename.
 
 const FILE_EXTENSIONS =
-  "txt|log|gz|htm|html|json|js|css|md|py|yml|yaml|toml|csv|tsv|pdf|docx|rtf|xls|png|jpg|jpeg|gif|webp|sh|whl|zip|mp3|mp4|m4a|wav|avi|sh|xsh|ksh|diff|patch";
+  "txt|log|gz|htm|html|json|js|css|md|py|yml|yaml|toml|csv|tsv|pdf|docx|rtf|xls|png|jpg|jpeg|gif|webp|sh|whl|zip|mp3|mp4|m4a|wav|avi|sh|xsh|ksh|diff|patch|kb";
 const FILENAME_CHARS = "/\\p{L}\\p{N}_.@$%&~+-";
 
 const UNQUOTED_PATH_REGEX = new RegExp(

@@ -101,6 +101,7 @@ const decorateTerm = (Term) => {
     }
 
     onDecorated(term) {
+      console.log("link-addons onDecorated", term);
       if (term === null) {
         return;
       }
@@ -118,8 +119,14 @@ const decorateTerm = (Term) => {
         hover: (event, text, range) => {
           console.log("OSC link hover", [event, text, range]);
           this.showTooltip(event, `Open link: ${text}`, range);
+          event.target.style.cursor = "pointer";
         },
-        leave: () => this.hideTooltip(),
+        leave: (event) => {
+          this.hideTooltip();
+          if (event && event.target) {
+            event.target.style.cursor = "auto";
+          }
+        },
       };
 
       // Load custom addon for click-to-paste on commands or paths.
