@@ -17,16 +17,19 @@ class Tooltip extends React.Component {
   render() {
     const { visible, content, position } = this.props;
 
-    const viewportHeight = window.innerHeight;
-    // Define a threshold (e.g., bottom 20% of screen)
-    const bottomThreshold = viewportHeight * 0.8;
+    const VIEWPORT_HEIGHT = window.innerHeight;
+    const TOP_THRESHOLD = VIEWPORT_HEIGHT * 0.1; // Top 10% of screen
+    const HORIZONTAL_OFFSET = 10;
+    const VERTICAL_OFFSET = 25;
 
-    // If cursor is below threshold, position tooltip above cursor
-    const verticalOffset = position.y > bottomThreshold ? -30 : 10;
+    // Default to above and right of cursor/element.
+    // If we are near the top of the screen, position below instead.
+    const verticalOffset =
+      position.y < TOP_THRESHOLD ? VERTICAL_OFFSET : -VERTICAL_OFFSET;
 
     const style = {
       ...tooltipStyle,
-      left: position.x + 10,
+      left: position.x + HORIZONTAL_OFFSET,
       top: position.y + verticalOffset,
       opacity: visible ? 1 : 0,
       visibility: visible ? "visible" : "hidden",
