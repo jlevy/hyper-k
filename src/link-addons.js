@@ -21,6 +21,36 @@ function removeOldAddons(term) {
   console.log("Updated addons", term._addonManager._addons);
 }
 
+function getCellDimensions(terminal) {
+  const core = terminal._core;
+  // xterm.js v4 vs v5 have different places for this.
+  return {
+    width:
+      core._renderService.dimensions.actualCellWidth ||
+      core._renderService.dimensions.css.cell.width,
+    height:
+      core._renderService.dimensions.actualCellHeight ||
+      core._renderService.dimensions.css.cell.height,
+  };
+}
+
+function calculateTooltipPosition(terminal, range, cellDimensions) {
+  const core = terminal._core;
+
+  // Convert terminal coordinates to pixel positions.
+  const startCoords = core.screenElement.getBoundingClientRect();
+
+  // Account for scroll position.
+  const scrollOffset = terminal.buffer.active.viewportY;
+  const adjustedY = range.start.y - scrollOffset;
+
+  // Calculate position of the top-right corner of the link.
+  return {
+    x: startCoords.left + range.end.x * cellDimensions.width,
+    y: startCoords.top + (adjustedY - 1) * cellDimensions.height,
+  };
+}
+
 const decorateTerm = (Term) => {
   return class extends React.Component {
     constructor(props, context) {
@@ -30,6 +60,7 @@ const decorateTerm = (Term) => {
         tooltipVisible: false,
         tooltipContent: "",
         tooltipPosition: { x: 0, y: 0 },
+        tooltipFontSize: "12px",
       };
       this.onDecorated = this.onDecorated.bind(this);
       this.showTooltip = this.showTooltip.bind(this);
@@ -39,35 +70,20 @@ const decorateTerm = (Term) => {
 
     showTooltip(event, text, range) {
       const terminal = this._term.term;
-      const core = terminal._core;
-      console.log("showTooltip", { event, text, range, core });
+      console.log("showTooltip", { event, text, range, terminal });
 
-      // Convert terminal coordinates to pixel positions.
-      const startCoords = core.screenElement.getBoundingClientRect();
-
-      // Get the width and height of a cell in pixels.
-      // xterm.js v4 vs v5 have different places for this.
-      const cellWidth =
-        core._renderService.dimensions.actualCellWidth ||
-        core._renderService.dimensions.css.cell.width;
-      const cellHeight =
-        core._renderService.dimensions.actualCellHeight ||
-        core._renderService.dimensions.css.cell.height;
-
-      // Account for scroll position.
-      const scrollOffset = terminal.buffer.active.viewportY;
-      const adjustedY = range.start.y - scrollOffset;
-
-      // Calculate position of the top-right corner of the link.
-      const x = startCoords.left + range.end.x * cellWidth;
-      const y = startCoords.top + (adjustedY - 1) * cellHeight;
+      const cellDimensions = getCellDimensions(terminal);
+      const position = calculateTooltipPosition(
+        terminal,
+        range,
+        cellDimensions
+      );
 
       this.setState({
         tooltipVisible: true,
         tooltipContent: text,
-        // Mouse cursor position works too, but feels jitterier to the user.
-        // tooltipPosition: { x: event.clientX, y: event.clientY },
-        tooltipPosition: { x, y },
+        tooltipPosition: position,
+        tooltipFontSize: `${cellDimensions.height}px`,
       });
     }
 
@@ -162,6 +178,7 @@ const decorateTerm = (Term) => {
           visible: this.state.tooltipVisible,
           content: this.state.tooltipContent,
           position: this.state.tooltipPosition,
+          fontSize: this.state.tooltipFontSize,
         })
       );
     }
