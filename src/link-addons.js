@@ -34,16 +34,25 @@ const decorateTerm = (Term) => {
       this.onDecorated = this.onDecorated.bind(this);
       this.showTooltip = this.showTooltip.bind(this);
       this.hideTooltip = this.hideTooltip.bind(this);
+      this.handleLink = this.handleLinkClick.bind(this);
     }
 
     showTooltip(event, text, range) {
       const terminal = this._term.term;
       const core = terminal._core;
+      console.log("showTooltip", { event, text, range, core });
 
       // Convert terminal coordinates to pixel positions.
       const startCoords = core.screenElement.getBoundingClientRect();
-      const cellWidth = core._renderService.dimensions.actualCellWidth;
-      const cellHeight = core._renderService.dimensions.actualCellHeight;
+
+      // Get the width and height of a cell in pixels.
+      // xterm.js v4 vs v5 have different places for this.
+      const cellWidth =
+        core._renderService.dimensions.actualCellWidth ||
+        core._renderService.dimensions.css.cell.width;
+      const cellHeight =
+        core._renderService.dimensions.actualCellHeight ||
+        core._renderService.dimensions.css.cell.height;
 
       // Account for scroll position.
       const scrollOffset = terminal.buffer.active.viewportY;
@@ -69,6 +78,12 @@ const decorateTerm = (Term) => {
       });
     }
 
+    handleLinkClick(event, uri) {
+      const { shell } = require("electron");
+      console.log("handleLinkClick", uri);
+      shell.openExternal(uri);
+    }
+
     onDecorated(term) {
       if (term === null) {
         return;
@@ -81,14 +96,26 @@ const decorateTerm = (Term) => {
       // Remove the old web links addon.
       removeOldAddons(this._term.term);
 
+      // Configure OSC 8 link handling.
+      this._term.term.options.linkHandler = {
+        activate: this.handleLinkClick,
+        hover: (event, text, range) => {
+          console.log("OSC link hover", [event, text, range]);
+          this.showTooltip(event, `Open link: ${text}`, range);
+        },
+        leave: () => this.hideTooltip(),
+      };
+
       // Load custom addon for click-to-paste on commands or paths.
       const commandPasteAddon = new CustomLinksAddon(
         COMMAND_OR_PATH_REGEX,
         pasteText,
         {
           filter: notUrlPath,
-          hover: (event, text, range) =>
-            this.showTooltip(event, `Click to paste`, range),
+          hover: (event, text, range) => {
+            console.log("Command/path hover", [event, text, range]);
+            this.showTooltip(event, `Click to paste`, range);
+          },
           leave: () => this.hideTooltip(),
         }
       );
@@ -104,8 +131,10 @@ const decorateTerm = (Term) => {
 
       // Load custom addon for URLs with tooltip support.
       const webLinksAddon = new CustomLinksAddon(URL_REGEX, openLink, {
-        hover: (event, text, range) =>
-          this.showTooltip(event, `Open link: ${text}`, range),
+        hover: (event, text, range) => {
+          console.log("URL link hover", [event, text, range]);
+          this.showTooltip(event, `Open link: ${text}`, range);
+        },
         leave: () => this.hideTooltip(),
       });
       this._term.term.loadAddon(webLinksAddon);
@@ -113,13 +142,20 @@ const decorateTerm = (Term) => {
     }
 
     render() {
+      // Remove terminalOptions from props since we're handling links differently now.
+      const { options, ...props } = this.props;
+      const filteredOptions = { ...options };
+      // Remove any existing linkHandler.
+      delete filteredOptions.linkHandler;
+
       return React.createElement(
         React.Fragment || "div",
         null,
         React.createElement(
           Term,
-          Object.assign({}, this.props, {
+          Object.assign({}, props, {
             onDecorated: this.onDecorated,
+            options: filteredOptions,
           })
         ),
         React.createElement(Tooltip, {
