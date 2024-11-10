@@ -1,4 +1,4 @@
-const { IMAGE_URL_REGEX } = require("./constants");
+const { IMAGE_URL_REGEX } = require("../regex-constants");
 
 const KEY_CODE_BACKSPACE = 8;
 const KEY_CODE_ESCAPE = 27;

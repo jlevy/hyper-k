@@ -1,13 +1,14 @@
 const React = require("react");
+const colors = require("../colors");
 
 const tooltipStyle = {
   position: "fixed",
-  backgroundColor: "rgba(168, 170, 149, 0.8)",
-  color: "#fff",
+  backgroundColor: colors.tooltip,
+  color: colors.foreground,
   padding: "5px",
   pointerEvents: "none",
   zIndex: 1000,
-  transition: "opacity 0.2s ease-in-out, visibility 0.2s ease-in-out",
+  transition: "opacity 0.3s ease-in-out, visibility 0.3s ease-in-out",
   opacity: 0,
   visibility: "hidden",
 };

@@ -1,8 +1,8 @@
 const React = require("react");
-const Tooltip = require("./Tooltip");
+const Tooltip = require("../components/Tooltip");
 const { CustomLinksAddon, pasteText } = require("./CustomLinksAddon");
-const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("./constants");
-const { notUrlPath } = require("./utils");
+const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("../regex-constants");
+const { notUrlPath } = require("../utils");
 const { insideMarkdownFenced } = require("./link-patterns");
 
 // Function to remove old addons.

@@ -1,14 +1,17 @@
-const { decorateConfig: colorsDecorateConfig } = require("./colors");
-
+const { decorateConfig: themeDecorateConfig } = require("./custom-theme/theme");
 const {
   decorateTerm: imageDecorateTerm,
   middleware: imageMiddleware,
   reducer: imageReducer,
   getTermProps: imageGetTermProps,
   mapTermsState: imageMapTermsState,
-} = require("./image-view");
-const { decorateTerm: linkAddonsDecorateTerm } = require("./link-addons");
-const { decorateTerm: highlightsDecorateTerm } = require("./highlights");
+} = require("./custom-image-view/image-view");
+const {
+  decorateTerm: linkAddonsDecorateTerm,
+} = require("./custom-links/link-addons");
+const {
+  decorateTerm: highlightsDecorateTerm,
+} = require("./custom-highlights/highlights");
 
 exports.decorateTerm = (Term, { React, notify }) => {
   console.log("Decorating term", Term);
@@ -32,6 +35,6 @@ exports.mapTermsState = imageMapTermsState;
 exports.getTermGroupProps = imageGetTermProps;
 exports.getTermProps = imageGetTermProps;
 
-exports.decorateConfig = colorsDecorateConfig;
+exports.decorateConfig = themeDecorateConfig;
 
 console.log("hyper-k loaded");

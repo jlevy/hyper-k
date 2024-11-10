@@ -1,6 +1,6 @@
-const addHighlights = require("./add-highlights");
-const { COMMAND_OR_PATH_REGEX } = require("./constants");
-const { notUrlPath } = require("./utils");
+const addHighlights = require("./add-highlight-decorations");
+const { COMMAND_OR_PATH_REGEX } = require("../regex-constants");
+const { notUrlPath } = require("../utils");
 
 const decorateTerm = (Term, { React }) => {
   return class extends React.Component {
