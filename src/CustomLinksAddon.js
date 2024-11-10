@@ -8,20 +8,6 @@
 
 const { CustomLinkProvider } = require("./CustomLinkProvider");
 
-function openLink(event, uri, terminal) {
-  const newWindow = window.open();
-  if (newWindow) {
-    try {
-      newWindow.opener = null;
-    } catch {
-      // no-op, Electron can throw
-    }
-    newWindow.location.href = uri;
-  } else {
-    console.warn("Opening link blocked as opener could not be cleared");
-  }
-}
-
 // Custom handler to paste text into the terminal.
 function pasteText(event, text, terminal) {
   console.log("Paste text to terminal", text);
@@ -53,7 +39,7 @@ function pasteText(event, text, terminal) {
 }
 
 class CustomLinksAddon {
-  constructor(matchFunction, handler = openLink, options = {}) {
+  constructor(matchFunction, handler, options = {}) {
     this._matchFunction = matchFunction;
     this._handler = handler;
     this._options = options;
@@ -116,4 +102,4 @@ class CustomLinksAddon {
   }
 }
 
-module.exports = { CustomLinksAddon, openLink, pasteText };
+module.exports = { CustomLinksAddon, pasteText };

@@ -1,24 +1,26 @@
 const React = require("react");
 const Tooltip = require("./Tooltip");
-const { CustomLinksAddon, openLink, pasteText } = require("./CustomLinksAddon");
+const { CustomLinksAddon, pasteText } = require("./CustomLinksAddon");
 const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("./constants");
 const { notUrlPath } = require("./utils");
 const { insideMarkdownFenced } = require("./link-patterns");
 
-// Function to remove old addons
+// Function to remove old addons.
+// XXX This is a hack but not sure of a better way.
 function removeOldAddons(term) {
-  console.log("Current addons", term._addonManager._addons);
   term._addonManager._addons.forEach((addon) => {
+    // Name isn't preserved after minification so we have to infer which is
+    // the WebLinksAddOn in xterm.js v4 or v5
     if (
       addon &&
       addon.instance &&
-      addon.instance._useLinkProvider !== undefined
+      (addon.instance._useLinkProvider !== undefined ||
+        addon.instance._linkProvider !== undefined)
     ) {
       console.log("Removing old WebLinksAddon instance", addon);
       addon.instance.dispose();
     }
   });
-  console.log("Updated addons", term._addonManager._addons);
 }
 
 function getCellDimensions(terminal) {
@@ -51,6 +53,27 @@ function calculateTooltipPosition(terminal, range, cellDimensions) {
   };
 }
 
+function handleOpenLinkWindow(event, uri, terminal) {
+  console.log("Opening link in new window", uri, event);
+  const newWindow = window.open();
+  if (newWindow) {
+    try {
+      newWindow.opener = null;
+    } catch {
+      // no-op, Electron can throw
+    }
+    newWindow.location.href = uri;
+  } else {
+    console.warn("Opening link blocked as opener could not be cleared");
+  }
+}
+
+function handleOpenLinkElectron(event, uri) {
+  console.log("Opening link externally", uri);
+  const { shell } = require("electron");
+  shell.openExternal(uri);
+}
+
 const decorateTerm = (Term) => {
   return class extends React.Component {
     constructor(props, context) {
@@ -65,7 +88,6 @@ const decorateTerm = (Term) => {
       this.onDecorated = this.onDecorated.bind(this);
       this.showTooltip = this.showTooltip.bind(this);
       this.hideTooltip = this.hideTooltip.bind(this);
-      this.handleLink = this.handleLinkClick.bind(this);
     }
 
     showTooltip(event, text, range) {
@@ -94,12 +116,6 @@ const decorateTerm = (Term) => {
       });
     }
 
-    handleLinkClick(event, uri) {
-      const { shell } = require("electron");
-      console.log("handleLinkClick", uri);
-      shell.openExternal(uri);
-    }
-
     onDecorated(term) {
       console.log("link-addons onDecorated", term);
       if (term === null) {
@@ -110,12 +126,20 @@ const decorateTerm = (Term) => {
       }
       this._term = term;
 
+      console.log("Original addons", [
+        ...this._term.term._addonManager._addons,
+      ]);
+
       // Remove the old web links addon.
       removeOldAddons(this._term.term);
 
+      console.log("Cleaned up addons", [
+        ...this._term.term._addonManager._addons,
+      ]);
+
       // Configure OSC 8 link handling.
       this._term.term.options.linkHandler = {
-        activate: this.handleLinkClick,
+        activate: handleOpenLinkElectron,
         hover: (event, text, range) => {
           console.log("OSC link hover", [event, text, range]);
           this.showTooltip(event, `Open link: ${text}`, range);
@@ -153,15 +177,21 @@ const decorateTerm = (Term) => {
       console.log("Loaded fencedCodeBlockAddon", fencedCodeBlockAddon);
 
       // Load custom addon for URLs with tooltip support.
-      const webLinksAddon = new CustomLinksAddon(URL_REGEX, openLink, {
-        hover: (event, text, range) => {
-          console.log("URL link hover", [event, text, range]);
-          this.showTooltip(event, `Open link: ${text}`, range);
-        },
-        leave: () => this.hideTooltip(),
-      });
+      const webLinksAddon = new CustomLinksAddon(
+        URL_REGEX,
+        handleOpenLinkElectron,
+        {
+          hover: (event, text, range) => {
+            console.log("URL link hover", [event, text, range]);
+            this.showTooltip(event, `Open link: ${text}`, range);
+          },
+          leave: () => this.hideTooltip(),
+        }
+      );
       this._term.term.loadAddon(webLinksAddon);
       console.log("Loaded webLinksAddon with tooltips", webLinksAddon);
+
+      console.log("Final addons", [...this._term.term._addonManager._addons]);
     }
 
     render() {
