@@ -47,6 +47,7 @@ const colors = {
   cursor: "hsl(305, 84%, 68%)",
   selection: "hsla(305, 32%, 72%, 0.58)",
   tooltip: "hsla(60, 9%, 49%, 0.952)",
+  bright: "hsl(134, 43%, 60%)",
 };
 
 module.exports = colors;

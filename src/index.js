@@ -8,7 +8,7 @@ const {
 } = require("./custom-image-view/image-view");
 const {
   decorateTerm: linkAddonsDecorateTerm,
-} = require("./custom-links/link-addons");
+} = require("./custom-links/links");
 const {
   decorateTerm: highlightsDecorateTerm,
 } = require("./custom-highlights/highlights");

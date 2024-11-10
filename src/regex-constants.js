@@ -53,6 +53,18 @@ const COMMAND_OR_PATH_REGEX = new RegExp(
   "u"
 );
 
+const notUrlPath = (line, pathMatch) => {
+  if (!pathMatch) {
+    return true;
+  }
+  const startIndex = pathMatch.index;
+  // Negative lookbehind to confirm the preceding text is not the start of a URL.
+  const precedingText = line.substring(0, startIndex);
+  const urlRegex = /(?:https?:\/\/?)$/;
+
+  return !urlRegex.test(precedingText);
+};
+
 module.exports = {
   URL_REGEX,
   IMAGE_URL_REGEX,
@@ -61,4 +73,5 @@ module.exports = {
   QUOTED_PATH_REGEX,
   FILE_PATH_REGEX,
   COMMAND_OR_PATH_REGEX,
+  notUrlPath,
 };

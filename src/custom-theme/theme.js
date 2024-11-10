@@ -39,7 +39,7 @@ const decorateConfig = (config) =>
 			left: 0;
 			right: 0;
 			height: 2px;
-			background-color: hsl(134, 43%, 60%);
+			background-color: ${colors.bright};
 			transform: scaleX(0);
 			will-change: transform;
 		}
