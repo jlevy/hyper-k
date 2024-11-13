@@ -53,7 +53,11 @@ const COMMAND_OR_PATH_REGEX = new RegExp(
   "u"
 );
 
-const notUrlPath = (line, pathMatch) => {
+const isUrl = (text) => URL_REGEX.test(text);
+
+const isImageUrl = (text) => IMAGE_URL_REGEX.test(text);
+
+const pathIsNotUrl = (line, pathMatch) => {
   if (!pathMatch) {
     return true;
   }
@@ -73,5 +77,7 @@ module.exports = {
   QUOTED_PATH_REGEX,
   FILE_PATH_REGEX,
   COMMAND_OR_PATH_REGEX,
-  notUrlPath,
+  isUrl,
+  isImageUrl,
+  notUrlPath: pathIsNotUrl,
 };

@@ -1,19 +1,31 @@
-// Custom handler to paste text into the terminal.
-function handlePasteText(event, text, terminal) {
-  console.log("Paste text to terminal", text);
+const { isUrl } = require("../regex-constants");
 
-  terminal.focus();
+// Custom handler to paste text into the terminal.
+function handlePasteText(event, text, range, xterm, linkText) {
+  console.log("Paste text to terminal", {
+    event,
+    text,
+    range,
+    xterm,
+    linkText,
+  });
+
+  // Paste the text from the xterm, if this was an OSC link, otherwise
+  // paste the text or literal URL content.
+  const textToPaste = linkText || text;
+
+  xterm.focus();
 
   // XXX It wasn't clear how it's best to simulate typing text, but this seems to be what we want.
   // You can't use terminal.write() as it won't go into the textarea input. And you can't
   // just write to the textarea. Finally, simulating keypresses is pretty messy. So instead
   // fire the xterm.js event.
   function sendChar(char) {
-    terminal._core._onData.fire(char);
+    xterm._core._onData.fire(char);
   }
 
-  for (let i = 0; i < text.length; i++) {
-    sendChar(text[i]);
+  for (let i = 0; i < textToPaste.length; i++) {
+    sendChar(textToPaste[i]);
   }
 
   // Experimented with a delay to make it look like typing but doesn't seem necessary.
@@ -28,8 +40,15 @@ function handlePasteText(event, text, terminal) {
   // typeNextChar();
 }
 
-function handleOpenLinkWindow(event, uri, terminal) {
-  console.log("Opening link in new window", uri, event);
+function handleOpenLinkWindow(event, uri, range, xterm, linkText) {
+  console.log("handleOpenLinkWindow: Opening UR", {
+    uri,
+    event,
+    range,
+    xterm,
+    linkText,
+  });
+
   const newWindow = window.open();
   if (newWindow) {
     try {
@@ -43,10 +62,21 @@ function handleOpenLinkWindow(event, uri, terminal) {
   }
 }
 
-function handleOpenLink(event, uri) {
-  console.log("Opening link externally", uri);
-  const { shell } = require("electron");
-  shell.openExternal(uri);
+function handleOpenLink(event, uri, range, xterm, linkText) {
+  if (isUrl(uri)) {
+    console.log("handleOpenLink: Opening URL", {
+      event,
+      uri,
+      range,
+      xterm,
+      linkText,
+    });
+
+    const { shell } = require("electron");
+    shell.openExternal(uri);
+  } else {
+    console.log("handleOpenLink: Skipping non-URL link", uri);
+  }
 }
 
 module.exports = {

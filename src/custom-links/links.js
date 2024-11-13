@@ -2,15 +2,13 @@ const React = require("react");
 const Tooltip = require("../components/Tooltip");
 const { CustomLinksAddon } = require("./CustomLinksAddon");
 const { handlePasteText, handleOpenLink } = require("./link-handlers");
-const {
-  URL_REGEX,
-  COMMAND_OR_PATH_REGEX,
-  notUrlPath,
-} = require("../regex-constants");
+const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("../regex-constants");
 const {
   getCellDimensions,
   calculateTooltipPosition,
-} = require("../xterm-utils");
+  getTextInRange,
+} = require("../utils/xterm-utils");
+const { ClickHandler } = require("../utils/click-handler");
 const { insideMarkdownFenced } = require("./link-patterns");
 
 // Function to remove old addons.
@@ -46,18 +44,20 @@ const decorateTerm = (Term) => {
       this.onDecorated = this.onDecorated.bind(this);
       this.showTooltip = this.showTooltip.bind(this);
       this.hideTooltip = this.hideTooltip.bind(this);
+
+      // For links, we want to handle single and double clicks differently.
+      this.linkClick = new ClickHandler(
+        handlePasteText, // Single-click action
+        handleOpenLink // Double-click action
+      );
     }
 
     showTooltip(event, text, previewUrl, range) {
-      const terminal = this._term.term;
-      console.log("showTooltip", { event, text, previewUrl, range, terminal });
+      const xterm = this._term.term;
+      console.log("showTooltip", { event, text, previewUrl, range, xterm });
 
-      const cellDimensions = getCellDimensions(terminal);
-      const position = calculateTooltipPosition(
-        terminal,
-        range,
-        cellDimensions
-      );
+      const cellDimensions = getCellDimensions(xterm);
+      const position = calculateTooltipPosition(xterm, range, cellDimensions);
 
       this.setState({
         tooltipVisible: true,
@@ -85,21 +85,22 @@ const decorateTerm = (Term) => {
         this.props.onDecorated(term);
       }
       this._term = term;
+      const xterm = this._term.term;
 
-      console.log("Original addons", [
-        ...this._term.term._addonManager._addons,
-      ]);
+      console.log("Original addons", [...xterm._addonManager._addons]);
 
       // Remove the old web links addon.
-      removeOldAddons(this._term.term);
+      removeOldAddons(xterm);
 
-      console.log("Cleaned up addons", [
-        ...this._term.term._addonManager._addons,
-      ]);
+      console.log("Cleaned up addons", [...xterm._addonManager._addons]);
 
       // Configure OSC 8 link handling via xterm.js's linkHandler.
-      this._term.term.options.linkHandler = {
-        activate: handleOpenLink,
+      xterm.options.linkHandler = {
+        activate: (event, url, range) => {
+          // The link handler gives us the URL so we pass linkText so we know that too.
+          const linkText = getTextInRange(xterm, range);
+          return this.linkClick.handle(event, url, range, xterm, linkText);
+        },
         hover: (event, text, range) => {
           console.log("OSC link hover", [event, text, range]);
           // Enable preview for links.
@@ -122,10 +123,32 @@ const decorateTerm = (Term) => {
         },
       };
 
+      // Load custom addon for URLs with tooltip support.
+      const webLinksAddon = new CustomLinksAddon(
+        URL_REGEX,
+        (event, text, range) =>
+          this.linkClick.handle(event, text, range, xterm),
+        {
+          hover: (event, text, range) => {
+            console.log("URL link hover", [event, text, range]);
+            const previewUrl = text;
+            this.showTooltip(
+              event,
+              "Click to paste, double click to open link",
+              previewUrl,
+              range
+            );
+          },
+          leave: () => this.hideTooltip(),
+        }
+      );
+      xterm.loadAddon(webLinksAddon);
+      console.log("Loaded webLinksAddon with tooltips", webLinksAddon);
+
       // Load custom addon for click-to-paste on commands or paths.
       const commandPasteAddon = new CustomLinksAddon(
         COMMAND_OR_PATH_REGEX,
-        handlePasteText,
+        (event, text, range) => handlePasteText(event, text, range, xterm),
         {
           // Don't match paths starting with @ as regular paths, as they have
           // significance for Kmd (and aren't likely to appear otherwise).
@@ -139,34 +162,17 @@ const decorateTerm = (Term) => {
           leave: () => this.hideTooltip(),
         }
       );
-      this._term.term.loadAddon(commandPasteAddon);
+      xterm.loadAddon(commandPasteAddon);
       console.log("Loaded commandPasteAddon", commandPasteAddon);
 
       const fencedCodeBlockAddon = new CustomLinksAddon(
         insideMarkdownFenced,
-        handlePasteText
+        (event, text, range) => handlePasteText(event, text, range, xterm)
       );
-      this._term.term.loadAddon(fencedCodeBlockAddon);
+      xterm.loadAddon(fencedCodeBlockAddon);
       console.log("Loaded fencedCodeBlockAddon", fencedCodeBlockAddon);
 
-      // Load custom addon for URLs with tooltip support.
-      const webLinksAddon = new CustomLinksAddon(URL_REGEX, handleOpenLink, {
-        hover: (event, text, range) => {
-          console.log("URL link hover", [event, text, range]);
-          const previewUrl = text;
-          this.showTooltip(
-            event,
-            `Open link: ${previewUrl}`,
-            previewUrl,
-            range
-          );
-        },
-        leave: () => this.hideTooltip(),
-      });
-      this._term.term.loadAddon(webLinksAddon);
-      console.log("Loaded webLinksAddon with tooltips", webLinksAddon);
-
-      console.log("Final addons", [...this._term.term._addonManager._addons]);
+      console.log("Final addons", [...xterm._addonManager._addons]);
     }
 
     render() {
@@ -194,6 +200,10 @@ const decorateTerm = (Term) => {
           previewUrl: this.state.tooltipPreviewUrl,
         })
       );
+    }
+
+    componentWillUnmount() {
+      this.linkClick.destroy();
     }
   };
 };
