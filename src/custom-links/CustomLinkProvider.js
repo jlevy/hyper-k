@@ -85,6 +85,7 @@ class LinkComputer {
     for (const match of matches) {
       // Check extra filter, if provided.
       if (filter && !filter(line, match)) {
+        console.log("Skipping link match due to filter", match);
         continue;
       }
 

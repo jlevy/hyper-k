@@ -13,6 +13,14 @@ const tooltipStyle = {
   visibility: "hidden",
 };
 
+const tooltipPreviewStyle = {
+  ...tooltipStyle,
+  backgroundColor: "transparent",
+  width: "400px",
+  height: "600px", // TODO: Adapt size more intelligently.
+  overflow: "hidden",
+};
+
 class Tooltip extends React.Component {
   constructor(props) {
     super(props);
@@ -39,7 +47,7 @@ class Tooltip extends React.Component {
   }
 
   render() {
-    const { visible, content, fontSize } = this.props;
+    const { visible, content, previewUrl, fontSize } = this.props;
     const { visiblePosition, transitioning } = this.state;
 
     const VIEWPORT_HEIGHT = window.innerHeight;
@@ -51,7 +59,7 @@ class Tooltip extends React.Component {
       visiblePosition.y < TOP_THRESHOLD ? VERTICAL_OFFSET : -VERTICAL_OFFSET;
 
     const style = {
-      ...tooltipStyle,
+      ...(previewUrl ? tooltipPreviewStyle : tooltipStyle),
       fontSize: fontSize,
       left: visiblePosition.x + HORIZONTAL_OFFSET,
       top: visiblePosition.y + verticalOffset,
@@ -59,7 +67,27 @@ class Tooltip extends React.Component {
       visibility: visible ? "visible" : "hidden",
     };
 
-    return React.createElement("div", { style }, content);
+    // Decide whether to render a full iframe preview or a simple tooltip.
+    let contentElement;
+    if (previewUrl) {
+      console.log("Tooltip: previewUrl", previewUrl);
+      // Use iframe with sandboxing for security.
+      contentElement = React.createElement("iframe", {
+        src: previewUrl,
+        style: {
+          width: "100%",
+          height: "100%",
+          border: "none",
+          overflow: "hidden",
+        },
+        // Sandbox with no 'allow-same-origin' to use a unique origin for each preview.
+        sandbox: "allow-scripts",
+      });
+    } else {
+      contentElement = content;
+    }
+
+    return React.createElement("div", { style }, contentElement);
   }
 }
 

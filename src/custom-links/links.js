@@ -33,12 +33,13 @@ function removeOldAddons(term) {
 
 const decorateTerm = (Term) => {
   return class extends React.Component {
-    constructor(props, context) {
-      super(props, context);
+    constructor(props) {
+      super(props);
       this._term = null;
       this.state = {
         tooltipVisible: false,
         tooltipContent: "",
+        tooltipPreviewUrl: null,
         tooltipPosition: { x: 0, y: 0 },
         tooltipFontSize: "12px",
       };
@@ -47,9 +48,9 @@ const decorateTerm = (Term) => {
       this.hideTooltip = this.hideTooltip.bind(this);
     }
 
-    showTooltip(event, text, range) {
+    showTooltip(event, text, previewUrl, range) {
       const terminal = this._term.term;
-      console.log("showTooltip", { event, text, range, terminal });
+      console.log("showTooltip", { event, text, previewUrl, range, terminal });
 
       const cellDimensions = getCellDimensions(terminal);
       const position = calculateTooltipPosition(
@@ -63,6 +64,7 @@ const decorateTerm = (Term) => {
         tooltipContent: text,
         tooltipPosition: position,
         tooltipFontSize: `${cellDimensions.height}px`,
+        tooltipPreviewUrl: previewUrl || null,
       });
     }
 
@@ -70,6 +72,7 @@ const decorateTerm = (Term) => {
       console.log("hideTooltip");
       this.setState({
         tooltipVisible: false,
+        tooltipPreviewUrl: null,
       });
     }
 
@@ -94,12 +97,21 @@ const decorateTerm = (Term) => {
         ...this._term.term._addonManager._addons,
       ]);
 
-      // Configure OSC 8 link handling.
+      // Configure OSC 8 link handling via xterm.js's linkHandler.
       this._term.term.options.linkHandler = {
         activate: handleOpenLink,
         hover: (event, text, range) => {
           console.log("OSC link hover", [event, text, range]);
-          this.showTooltip(event, `Open link: ${text}`, range);
+          // Enable preview for links.
+          // TODO: Consider fetching content and rendering title/etc for non-recognized URLs,
+          // and doing full preview on known URLs (including localhost content).
+          const previewUrl = text;
+          this.showTooltip(
+            event,
+            `Open link: ${previewUrl}`,
+            previewUrl,
+            range
+          );
           event.target.style.cursor = "pointer";
         },
         leave: (event) => {
@@ -115,10 +127,14 @@ const decorateTerm = (Term) => {
         COMMAND_OR_PATH_REGEX,
         handlePasteText,
         {
-          filter: notUrlPath,
+          // Don't match paths starting with @ as regular paths, as they have
+          // significance for Kmd (and aren't likely to appear otherwise).
+          filter: (line, match) => {
+            return match.matchText[0] !== "@";
+          },
           hover: (event, text, range) => {
             console.log("Command/path hover", [event, text, range]);
-            this.showTooltip(event, `Click to paste`, range);
+            this.showTooltip(event, "Click to paste", null, range);
           },
           leave: () => this.hideTooltip(),
         }
@@ -137,7 +153,13 @@ const decorateTerm = (Term) => {
       const webLinksAddon = new CustomLinksAddon(URL_REGEX, handleOpenLink, {
         hover: (event, text, range) => {
           console.log("URL link hover", [event, text, range]);
-          this.showTooltip(event, `Open link: ${text}`, range);
+          const previewUrl = text;
+          this.showTooltip(
+            event,
+            `Open link: ${previewUrl}`,
+            previewUrl,
+            range
+          );
         },
         leave: () => this.hideTooltip(),
       });
@@ -169,6 +191,7 @@ const decorateTerm = (Term) => {
           content: this.state.tooltipContent,
           position: this.state.tooltipPosition,
           fontSize: this.state.tooltipFontSize,
+          previewUrl: this.state.tooltipPreviewUrl,
         })
       );
     }
