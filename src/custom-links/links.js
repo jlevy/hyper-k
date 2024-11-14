@@ -25,22 +25,7 @@ function removeOldAddons(xterm) {
     }
   });
 
-  // Find and remove the old OSC link provider.
-  // We can't control its behavior fully with options, so we'll replace with our own.
-  xterm._core.linkifier2._linkProviders =
-    xterm._core.linkifier2._linkProviders.filter((provider) => {
-      if (provider._oscLinkService !== undefined) {
-        console.log("Removing old OscLinkProvider", provider);
-        return false;
-      }
-      return true;
-    });
-
   console.log("Cleaned up addons", [...xterm._addonManager._addons]);
-  console.log(
-    "Cleaned up link providers",
-    xterm._core.linkifier2._linkProviders
-  );
 }
 
 const decorateTerm = (Term) => {

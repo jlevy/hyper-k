@@ -5,6 +5,7 @@ const { handlePasteText, handleOpenLink } = require("./link-handlers");
 const { getTextInRange } = require("../utils/xterm-utils");
 const { CustomWebLinkProvider } = require("./CustomWebLinkProvider");
 const { CustomOscLinkProvider } = require("./CustomOscLinkProvider");
+const { CustomOscLinkService } = require("./CustomOscLinkService");
 
 class CustomLinksAddon {
   constructor(tooltipHandlers) {
@@ -22,7 +23,44 @@ class CustomLinksAddon {
   activate(xterm) {
     console.log("Activating CustomLinksAddon", xterm);
 
-    // Configure OSC 8 link handling
+    // Find and remove the old OSC link provider.
+    // We can't control its behavior fully with options, so we'll replace with our own.
+    xterm._core.linkifier2._linkProviders =
+      xterm._core.linkifier2._linkProviders.filter((provider) => {
+        if (provider._oscLinkService !== undefined) {
+          console.log("Removing old OscLinkProvider", provider);
+          return false;
+        }
+        return true;
+      });
+    console.log(
+      "Cleaned up link providers",
+      xterm._core.linkifier2._linkProviders
+    );
+
+    // Same for the OSC link service. Replace with our own.
+    const customOscLinkService = new CustomOscLinkService(
+      xterm._core._bufferService
+    );
+
+    // Store reference to old service in case we need to clean it up.
+    const oldService = xterm._core._oscLinkService;
+
+    // Replace the service. We have to replace it in two places.
+    xterm._core._oscLinkService = customOscLinkService;
+    xterm._core._inputHandler._oscLinkService = customOscLinkService;
+
+    console.log("Replaced OSC link service", {
+      old: oldService,
+      new: customOscLinkService,
+    });
+
+    // Clean up old service if it has a dispose method.
+    if (oldService && typeof oldService.dispose === "function") {
+      oldService.dispose();
+    }
+
+    // Configure OSC link handling
     const activate = (event, url, range) => {
       // The link handler gives us the URL so we pass linkText so we know that too.
       const linkText = getTextInRange(xterm, range);
@@ -40,6 +78,7 @@ class CustomLinksAddon {
       this.hideTooltip();
     };
 
+    // Now register the custom OSC link provider.
     xterm.registerLinkProvider(
       new CustomOscLinkProvider(xterm, activate, hover, leave)
     );
@@ -101,7 +140,7 @@ class CustomLinksAddon {
       );
       this.linkProviders.push(xterm.registerLinkProvider(linkProvider));
 
-      console.log("Loaded provider", {
+      console.log("Loaded link provider", {
         matcher,
         handler,
         filter,

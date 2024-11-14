@@ -21,6 +21,8 @@ class CustomOscLinkProvider {
     this._leave = leave;
     this._bufferService = xterm._core._bufferService;
     this._oscLinkService = xterm._core._oscLinkService;
+
+    console.log("CustomOscLinkProvider created", this);
   }
 
   provideLinks(y, callback) {
@@ -64,6 +66,11 @@ class CustomOscLinkProvider {
 
       if (finishLink || (currentStart !== -1 && x === lineLength - 1)) {
         const text = this._oscLinkService.getLinkData(currentLinkId)?.uri;
+        console.log("CustomOscLinkProvider.provideLinks found link text", {
+          oscLinkService: this._oscLinkService,
+          currentLinkId,
+          text,
+        });
         if (text) {
           // These ranges are 1-based
           const range = {
@@ -79,6 +86,9 @@ class CustomOscLinkProvider {
           };
 
           if (isAllowedUrl(text)) {
+            console.log("CustomOscLinkProvider.provideLinks found link", {
+              text,
+            });
             result.push({
               text,
               range,
@@ -87,6 +97,8 @@ class CustomOscLinkProvider {
                 underline: false,
                 pointerCursor: true,
               },
+              // XXX You would think you could control the persistent non-hover styling of links
+              // here. But no as of xterm.js v5. OSC links are hard-coded as dashed links.
               activate: (e, text) => this._activate(e, text),
               hover: (e, text) => this._hover(e, text, range),
               leave: (e, text) => this._leave(e, text, range),
@@ -106,6 +118,9 @@ class CustomOscLinkProvider {
       }
     }
 
+    if (result.length > 0) {
+      console.log("CustomOscLinkProvider.provideLinks found links", result);
+    }
     // TODO: Handle fetching and returning other link ranges to underline other links with the same
     //       id
     callback(result);
