@@ -1,74 +1,120 @@
-/**
- * Portions adapted from the xterm.js addon
- * https://github.com/xtermjs/xterm.js/tree/master/addons/addon-web-links
- * which is
- * Copyright (c) 2019 The xterm.js authors. All rights reserved.
- * @license MIT
- */
-
-const { CustomLinkProvider } = require("./CustomLinkProvider");
+const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("../regex-constants");
+const { insideMarkdownFenced } = require("./link-patterns");
+const { ClickHandler } = require("../utils/click-handler");
+const { handlePasteText, handleOpenLink } = require("./link-handlers");
+const { getTextInRange } = require("../utils/xterm-utils");
+const { CustomWebLinkProvider } = require("./CustomWebLinkProvider");
+const { CustomOscLinkProvider } = require("./CustomOscLinkProvider");
 
 class CustomLinksAddon {
-  constructor(matchFunction, handler, options = {}) {
-    this._matchFunction = matchFunction;
-    this._handler = handler;
-    this._options = options;
+  constructor(tooltipHandlers) {
+    this.linkProviders = [];
+    this.showTooltip = tooltipHandlers.showTooltip;
+    this.hideTooltip = tooltipHandlers.hideTooltip;
 
-    // Ensure hover and leave are always arrays
-    this._options.hover = Array.isArray(options.hover)
-      ? options.hover
-      : options.hover
-      ? [options.hover]
-      : [];
-    this._options.leave = Array.isArray(options.leave)
-      ? options.leave
-      : options.leave
-      ? [options.leave]
-      : [];
-  }
-
-  activate(terminal) {
-    this._terminal = terminal;
-    const options = this._options;
-    const filter = options.filter || null;
-
-    const clickHandler = (event, text) => {
-      console.log("CustomLinksAddon: clickHandler", text, event);
-      this._handler(event, text, this._terminal);
-    };
-
-    // Combine default cursor style changes with user-provided callbacks
-    const defaultHoverCallback = (event) => {
-      event.target.style.cursor = "pointer";
-    };
-    const defaultLeaveCallback = (event) => {
-      event.target.style.cursor = "auto";
-    };
-
-    // Always have hover and leave arrays including the default callbacks
-    const hoverCallbacks = [defaultHoverCallback, ...options.hover];
-    const leaveCallbacks = [defaultLeaveCallback, ...options.leave];
-
-    // Register the link provider with the combined callbacks
-    this._linkProvider = this._terminal.registerLinkProvider(
-      new CustomLinkProvider(
-        this._terminal,
-        this._matchFunction,
-        filter,
-        clickHandler,
-        {
-          ...options,
-          hover: hoverCallbacks,
-          leave: leaveCallbacks,
-        }
-      )
+    // For links, we want to handle single and double clicks differently.
+    this.linkClick = new ClickHandler(
+      handlePasteText, // Single-click action
+      handleOpenLink // Double-click action
     );
   }
 
+  activate(xterm) {
+    console.log("Activating CustomLinksAddon", xterm);
+
+    // Configure OSC 8 link handling
+    const activate = (event, url, range) => {
+      // The link handler gives us the URL so we pass linkText so we know that too.
+      const linkText = getTextInRange(xterm, range);
+      return this.linkClick.handle(event, url, range, xterm, linkText);
+    };
+    const hover = (event, text, range) => {
+      console.log("OSC link hover", [event, text, range]);
+      // Enable preview for links.
+      // TODO: Consider fetching content and rendering title/etc for non-recognized URLs,
+      // and doing full preview on known URLs (including localhost content).
+      const previewUrl = text;
+      this.showTooltip(event, `Open link: ${previewUrl}`, previewUrl, range);
+    };
+    const leave = (event) => {
+      this.hideTooltip();
+    };
+
+    xterm.registerLinkProvider(
+      new CustomOscLinkProvider(xterm, activate, hover, leave)
+    );
+
+    // Define all link providers
+    const providers = [
+      // Load custom addon for URLs with tooltip support.
+      {
+        matcher: URL_REGEX,
+        handler: (event, text, range) =>
+          this.linkClick.handle(event, text, range, xterm),
+        hover: (event, text, range) => {
+          console.log("URL link hover", [event, text, range]);
+          const previewUrl = text;
+          this.showTooltip(
+            event,
+            "Click to paste, double click to open link",
+            previewUrl,
+            range
+          );
+        },
+        leave: () => this.hideTooltip(),
+      },
+
+      // Load custom addon for click-to-paste on commands or paths.
+      {
+        matcher: COMMAND_OR_PATH_REGEX,
+        handler: (event, text, range) =>
+          handlePasteText(event, text, range, xterm),
+        // Don't match paths starting with @ as regular paths, as they have
+        // significance for Kmd (and aren't likely to appear otherwise).
+        filter: (line, match) => match.matchText[0] !== "@",
+        hover: (event, text, range) => {
+          console.log("Command/path hover", [event, text, range]);
+          this.showTooltip(event, "Click to paste", null, range);
+        },
+        leave: () => this.hideTooltip(),
+      },
+
+      // Load custom addon for markdown fenced code blocks
+      {
+        matcher: insideMarkdownFenced,
+        handler: (event, text, range) =>
+          handlePasteText(event, text, range, xterm),
+      },
+    ];
+
+    // Register link providers
+    providers.forEach(({ matcher, handler, filter = null, hover, leave }) => {
+      const linkProvider = new CustomWebLinkProvider(
+        xterm,
+        matcher,
+        filter,
+        handler,
+        {
+          hover,
+          leave,
+        }
+      );
+      this.linkProviders.push(xterm.registerLinkProvider(linkProvider));
+
+      console.log("Loaded provider", {
+        matcher,
+        handler,
+        filter,
+        hover,
+        leave,
+      });
+    });
+  }
+
   dispose() {
-    if (this._linkProvider) {
-      this._linkProvider.dispose();
-    }
+    this.linkProviders.forEach((provider) => provider.dispose());
+    this.linkProviders = [];
+    this.linkClick.destroy();
   }
 }
 

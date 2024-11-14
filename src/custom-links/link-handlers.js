@@ -79,6 +79,25 @@ function handleOpenLink(event, uri, range, xterm, linkText) {
   }
 }
 
+// function defaultActivate(e, uri) {
+//   const answer = confirm(
+//     `Do you want to navigate to ${uri}?\n\nWARNING: This link could potentially be dangerous`
+//   );
+//   if (answer) {
+//     const newWindow = window.open();
+//     if (newWindow) {
+//       try {
+//         newWindow.opener = null;
+//       } catch {
+//         // no-op, Electron can throw
+//       }
+//       newWindow.location.href = uri;
+//     } else {
+//       console.warn("Opening link blocked as opener could not be cleared");
+//     }
+//   }
+// }
+
 module.exports = {
   handlePasteText,
   handleOpenLinkWindow,

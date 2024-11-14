@@ -1,4 +1,4 @@
-/**
+/*
  * Portions adapted from the xterm.js addon
  * https://github.com/xtermjs/xterm.js/tree/master/addons/addon-web-links
  * which is
@@ -6,7 +6,7 @@
  * @license MIT
  */
 
-class CustomLinkProvider {
+class CustomWebLinkProvider {
   constructor(terminal, matchFunction, filter, handler, options = {}) {
     this._terminal = terminal;
 
@@ -29,10 +29,8 @@ class CustomLinkProvider {
     this._filter = filter;
     this._handler = handler;
     this._options = options;
-
-    // Assume `hover` and `leave` are arrays
-    this._hoverCallbacks = options.hover || [];
-    this._leaveCallbacks = options.leave || [];
+    this._hover = options.hover;
+    this._leave = options.leave;
   }
 
   provideLinks(y, callback) {
@@ -50,22 +48,24 @@ class CustomLinkProvider {
 
   _addCallbacks(links) {
     return links.map((link) => {
-      link.leave = (event, text) => {
-        // Execute all leave callbacks.
-        for (const callback of this._leaveCallbacks) {
-          callback(event, text, link.range);
-        }
-      };
+      if (this._leave) {
+        link.leave = (event, text) => {
+          this._leave(event, text, link.range);
+        };
+      }
 
-      link.hover = (event, text) => {
-        // Execute all hover callbacks.
-        for (const callback of this._hoverCallbacks) {
-          callback(event, text, link.range);
-        }
-      };
+      if (this._hover) {
+        link.hover = (event, text) => {
+          this._hover(event, text, link.range);
+        };
+      }
 
       return link;
     });
+  }
+
+  dispose() {
+    this._terminal = null;
   }
 }
 
@@ -232,4 +232,4 @@ class LinkComputer {
   }
 }
 
-module.exports = { CustomLinkProvider };
+module.exports = { CustomWebLinkProvider };

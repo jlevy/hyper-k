@@ -1,20 +1,17 @@
 const React = require("react");
 const Tooltip = require("../components/Tooltip");
 const { CustomLinksAddon } = require("./CustomLinksAddon");
-const { handlePasteText, handleOpenLink } = require("./link-handlers");
-const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("../regex-constants");
 const {
   getCellDimensions,
   calculateTooltipPosition,
-  getTextInRange,
 } = require("../utils/xterm-utils");
-const { ClickHandler } = require("../utils/click-handler");
-const { insideMarkdownFenced } = require("./link-patterns");
 
 // Function to remove old addons.
 // XXX This is a hack but not sure of a better way.
-function removeOldAddons(term) {
-  term._addonManager._addons.forEach((addon) => {
+function removeOldAddons(xterm) {
+  console.log("Cleaning up original addons", [...xterm._addonManager._addons]);
+
+  xterm._addonManager._addons.forEach((addon) => {
     // Name isn't preserved after minification so we have to infer which is
     // the WebLinksAddOn in xterm.js v4 or v5
     if (
@@ -27,6 +24,23 @@ function removeOldAddons(term) {
       addon.instance.dispose();
     }
   });
+
+  // Find and remove the old OSC link provider.
+  // We can't control its behavior fully with options, so we'll replace with our own.
+  xterm._core.linkifier2._linkProviders =
+    xterm._core.linkifier2._linkProviders.filter((provider) => {
+      if (provider._oscLinkService !== undefined) {
+        console.log("Removing old OscLinkProvider", provider);
+        return false;
+      }
+      return true;
+    });
+
+  console.log("Cleaned up addons", [...xterm._addonManager._addons]);
+  console.log(
+    "Cleaned up link providers",
+    xterm._core.linkifier2._linkProviders
+  );
 }
 
 const decorateTerm = (Term) => {
@@ -44,12 +58,6 @@ const decorateTerm = (Term) => {
       this.onDecorated = this.onDecorated.bind(this);
       this.showTooltip = this.showTooltip.bind(this);
       this.hideTooltip = this.hideTooltip.bind(this);
-
-      // For links, we want to handle single and double clicks differently.
-      this.linkClick = new ClickHandler(
-        handlePasteText, // Single-click action
-        handleOpenLink // Double-click action
-      );
     }
 
     showTooltip(event, text, previewUrl, range) {
@@ -87,90 +95,16 @@ const decorateTerm = (Term) => {
       this._term = term;
       const xterm = this._term.term;
 
-      console.log("Original addons", [...xterm._addonManager._addons]);
-
-      // Remove the old web links addon.
       removeOldAddons(xterm);
 
-      console.log("Cleaned up addons", [...xterm._addonManager._addons]);
+      // Add new custom links addon
+      const linksAddon = new CustomLinksAddon({
+        showTooltip: this.showTooltip,
+        hideTooltip: this.hideTooltip,
+      });
 
-      // Configure OSC 8 link handling via xterm.js's linkHandler.
-      xterm.options.linkHandler = {
-        activate: (event, url, range) => {
-          // The link handler gives us the URL so we pass linkText so we know that too.
-          const linkText = getTextInRange(xterm, range);
-          return this.linkClick.handle(event, url, range, xterm, linkText);
-        },
-        hover: (event, text, range) => {
-          console.log("OSC link hover", [event, text, range]);
-          // Enable preview for links.
-          // TODO: Consider fetching content and rendering title/etc for non-recognized URLs,
-          // and doing full preview on known URLs (including localhost content).
-          const previewUrl = text;
-          this.showTooltip(
-            event,
-            `Open link: ${previewUrl}`,
-            previewUrl,
-            range
-          );
-          event.target.style.cursor = "pointer";
-        },
-        leave: (event) => {
-          this.hideTooltip();
-          if (event && event.target) {
-            event.target.style.cursor = "auto";
-          }
-        },
-      };
-
-      // Load custom addon for URLs with tooltip support.
-      const webLinksAddon = new CustomLinksAddon(
-        URL_REGEX,
-        (event, text, range) =>
-          this.linkClick.handle(event, text, range, xterm),
-        {
-          hover: (event, text, range) => {
-            console.log("URL link hover", [event, text, range]);
-            const previewUrl = text;
-            this.showTooltip(
-              event,
-              "Click to paste, double click to open link",
-              previewUrl,
-              range
-            );
-          },
-          leave: () => this.hideTooltip(),
-        }
-      );
-      xterm.loadAddon(webLinksAddon);
-      console.log("Loaded webLinksAddon with tooltips", webLinksAddon);
-
-      // Load custom addon for click-to-paste on commands or paths.
-      const commandPasteAddon = new CustomLinksAddon(
-        COMMAND_OR_PATH_REGEX,
-        (event, text, range) => handlePasteText(event, text, range, xterm),
-        {
-          // Don't match paths starting with @ as regular paths, as they have
-          // significance for Kmd (and aren't likely to appear otherwise).
-          filter: (line, match) => {
-            return match.matchText[0] !== "@";
-          },
-          hover: (event, text, range) => {
-            console.log("Command/path hover", [event, text, range]);
-            this.showTooltip(event, "Click to paste", null, range);
-          },
-          leave: () => this.hideTooltip(),
-        }
-      );
-      xterm.loadAddon(commandPasteAddon);
-      console.log("Loaded commandPasteAddon", commandPasteAddon);
-
-      const fencedCodeBlockAddon = new CustomLinksAddon(
-        insideMarkdownFenced,
-        (event, text, range) => handlePasteText(event, text, range, xterm)
-      );
-      xterm.loadAddon(fencedCodeBlockAddon);
-      console.log("Loaded fencedCodeBlockAddon", fencedCodeBlockAddon);
+      console.log("Customizing links", { xterm, linksAddon });
+      xterm.loadAddon(linksAddon);
 
       console.log("Final addons", [...xterm._addonManager._addons]);
     }
@@ -200,10 +134,6 @@ const decorateTerm = (Term) => {
           previewUrl: this.state.tooltipPreviewUrl,
         })
       );
-    }
-
-    componentWillUnmount() {
-      this.linkClick.destroy();
     }
   };
 };
