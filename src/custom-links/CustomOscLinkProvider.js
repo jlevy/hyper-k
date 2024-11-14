@@ -92,9 +92,10 @@ class CustomOscLinkProvider {
             result.push({
               text,
               range,
-              // Our custom overrides that differ from xterm.js defaults.
+              // Custom overrides that differ from xterm.js.
+              // Important: these are for hover, not persistent styling.
               decorations: {
-                underline: false,
+                underline: true,
                 pointerCursor: true,
               },
               // XXX You would think you could control the persistent non-hover styling of links
@@ -118,9 +119,6 @@ class CustomOscLinkProvider {
       }
     }
 
-    if (result.length > 0) {
-      console.log("CustomOscLinkProvider.provideLinks found links", result);
-    }
     // TODO: Handle fetching and returning other link ranges to underline other links with the same
     //       id
     callback(result);

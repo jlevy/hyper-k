@@ -6,8 +6,9 @@
  */
 
 class CustomOscLinkService {
-  constructor(bufferService) {
-    this._bufferService = bufferService;
+  constructor(xterm) {
+    this._terminal = xterm;
+    this._bufferService = xterm._core._bufferService;
     this.serviceBrand = null;
     this._nextId = 1;
 
@@ -27,7 +28,8 @@ class CustomOscLinkService {
   }
 
   registerLink(data) {
-    console.log("registerLink called with data:", data);
+    console.log("CustomOscLinkService.registerLink called with data:", data);
+
     const buffer = this._bufferService.buffer;
 
     // Links with no id will only ever be registered a single time
@@ -62,6 +64,7 @@ class CustomOscLinkService {
       lines: [marker],
     };
     console.log("Registering new link with id:", entry);
+
     marker.onDispose(() => this._removeMarkerFromLink(entry, marker));
     this._entriesWithId.set(entry.key, entry);
     this._dataByLinkId.set(entry.id, entry);
