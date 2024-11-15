@@ -43,22 +43,16 @@ function getCellDimensions(xterm) {
 }
 
 /**
- * Calculate the position of the tooltip based on range of characters
- * within the terminal.
+ * Calculate pixel coordinates for a terminal cell.
  */
-function calculateTooltipPosition(xterm, range, cellDimensions) {
+function cellToPixelCoords(xterm, position, cellDimensions) {
   const core = xterm._core;
-
-  // Convert terminal coordinates to pixel positions.
   const startCoords = core.screenElement.getBoundingClientRect();
-
-  // Account for scroll position.
   const scrollOffset = xterm.buffer.active.viewportY;
-  const adjustedY = range.start.y - scrollOffset;
+  const adjustedY = position.y - scrollOffset;
 
-  // Calculate position of the top-right corner of the link.
   return {
-    x: startCoords.left + range.end.x * cellDimensions.width,
+    x: startCoords.left + (position.x - 1) * cellDimensions.width,
     y: startCoords.top + (adjustedY - 1) * cellDimensions.height,
   };
 }
@@ -66,5 +60,5 @@ function calculateTooltipPosition(xterm, range, cellDimensions) {
 module.exports = {
   getTextInRange,
   getCellDimensions,
-  calculateTooltipPosition,
+  cellToPixelCoords,
 };

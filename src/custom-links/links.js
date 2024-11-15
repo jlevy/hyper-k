@@ -3,7 +3,7 @@ const Tooltip = require("../components/Tooltip");
 const { CustomLinksAddon } = require("./CustomLinksAddon");
 const {
   getCellDimensions,
-  calculateTooltipPosition,
+  cellToPixelCoords,
 } = require("../utils/xterm-utils");
 
 // Function to remove old addons.
@@ -28,6 +28,16 @@ function removeOldAddons(xterm) {
   console.log("Cleaned up addons", [...xterm._addonManager._addons]);
 }
 
+// Upper right of the range of chars.
+function pickTooltipPosition(xterm, range, cellDimensions) {
+  const startPosition = cellToPixelCoords(xterm, range.start, cellDimensions);
+  const endPosition = cellToPixelCoords(xterm, range.end, cellDimensions);
+  return {
+    x: Math.max(startPosition.x, endPosition.x),
+    y: Math.min(startPosition.y, endPosition.y),
+  };
+}
+
 const decorateTerm = (Term) => {
   return class extends React.Component {
     constructor(props) {
@@ -50,7 +60,7 @@ const decorateTerm = (Term) => {
       console.log("showTooltip", { event, text, previewUrl, range, xterm });
 
       const cellDimensions = getCellDimensions(xterm);
-      const position = calculateTooltipPosition(xterm, range, cellDimensions);
+      const position = pickTooltipPosition(xterm, range, cellDimensions);
 
       this.setState({
         tooltipVisible: true,

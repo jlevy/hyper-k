@@ -95,18 +95,25 @@ class Tooltip extends React.Component {
     const { content, previewUrl, fontSize } = this.props;
     const { visiblePosition, transitioning, visible } = this.state;
 
-    const VIEWPORT_HEIGHT = window.innerHeight;
-    const TOP_THRESHOLD = VIEWPORT_HEIGHT * 0.1; // Top 10% of screen
-    const HORIZONTAL_OFFSET = 10;
-    const VERTICAL_OFFSET = 25;
+    // Get tooltip dimensions based on content type
+    const tooltipDimensions = previewUrl
+      ? { width: 400, height: 600 } // IframeTooltip dimensions
+      : { width: 300, height: 100 }; // PlainTooltip approximate dimensions
 
-    const verticalOffset =
-      visiblePosition.y < TOP_THRESHOLD ? VERTICAL_OFFSET : -VERTICAL_OFFSET;
+    // Adjust position to fit viewport
+    const adjustedPosition = adjustCoordsToViewport(
+      {
+        x: visiblePosition.x + 10, // Small horizontal offset
+        y: visiblePosition.y - 25, // Small upward offset
+      },
+      tooltipDimensions.width,
+      tooltipDimensions.height
+    );
 
     const containerStyle = {
       position: "fixed",
-      left: visiblePosition.x + HORIZONTAL_OFFSET,
-      top: visiblePosition.y + verticalOffset,
+      left: adjustedPosition.x,
+      top: adjustedPosition.y,
       zIndex: 1000,
       pointerEvents: "none",
       opacity: visible && !transitioning ? 1 : 0,
@@ -134,6 +141,17 @@ class Tooltip extends React.Component {
       ContentComponent
     );
   }
+}
+
+// Keep tooltip within viewport bounds
+function adjustCoordsToViewport(coords, elementWidth, elementHeight) {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  return {
+    x: Math.max(0, Math.min(coords.x, viewportWidth - elementWidth)),
+    y: Math.max(0, Math.min(coords.y, viewportHeight - elementHeight)),
+  };
 }
 
 module.exports = Tooltip;
