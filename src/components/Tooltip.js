@@ -1,25 +1,8 @@
 const React = require("react");
-const colors = require("../colors");
+const IframeTooltip = require("./IframeTooltip");
+const PlainTooltip = require("./PlainTooltip");
 
-const tooltipStyle = {
-  position: "fixed",
-  backgroundColor: colors.tooltip,
-  color: colors.foreground,
-  padding: "5px",
-  pointerEvents: "none",
-  zIndex: 1000,
-  transition: "opacity 0.2s ease-in, visibility 0.2s ease-in",
-  opacity: 0,
-  visibility: "hidden",
-};
-
-const tooltipPreviewStyle = {
-  ...tooltipStyle,
-  backgroundColor: "transparent",
-  width: "400px",
-  height: "600px", // TODO: Adapt size more intelligently.
-  overflow: "hidden",
-};
+const TRANSITION_DURATION = 250;
 
 class Tooltip extends React.Component {
   constructor(props) {
@@ -57,7 +40,7 @@ class Tooltip extends React.Component {
           visible: false,
           transitioning: false,
         });
-      }, 200);
+      }, TRANSITION_DURATION);
     }
   }
 
@@ -104,7 +87,7 @@ class Tooltip extends React.Component {
           visiblePosition: this.props.position,
           transitioning: false,
         });
-      }, 200);
+      }, TRANSITION_DURATION);
     }
   }
 
@@ -120,36 +103,36 @@ class Tooltip extends React.Component {
     const verticalOffset =
       visiblePosition.y < TOP_THRESHOLD ? VERTICAL_OFFSET : -VERTICAL_OFFSET;
 
-    const style = {
-      ...(previewUrl ? tooltipPreviewStyle : tooltipStyle),
-      fontSize: fontSize,
+    const containerStyle = {
+      position: "fixed",
       left: visiblePosition.x + HORIZONTAL_OFFSET,
       top: visiblePosition.y + verticalOffset,
+      zIndex: 1000,
+      pointerEvents: "none",
       opacity: visible && !transitioning ? 1 : 0,
       visibility: visible ? "visible" : "hidden",
+      transition: "opacity 0.25s ease-in, visibility 0.25s ease-in",
     };
 
-    // Decide whether to render a full iframe preview or a simple tooltip.
-    let contentElement;
+    // Decide which tooltip content component to render
+    let ContentComponent;
     if (previewUrl) {
-      console.log("Tooltip: previewUrl", previewUrl);
-      // Use iframe with sandboxing for security.
-      contentElement = React.createElement("iframe", {
+      ContentComponent = React.createElement(IframeTooltip, {
         src: previewUrl,
-        style: {
-          width: "100%",
-          height: "100%",
-          border: "none",
-          overflow: "hidden",
-        },
-        // Sandbox with no 'allow-same-origin' to use a unique origin for each preview.
-        sandbox: "allow-scripts",
+        fontSize,
       });
     } else {
-      contentElement = content;
+      ContentComponent = React.createElement(PlainTooltip, {
+        text: content,
+        fontSize,
+      });
     }
 
-    return React.createElement("div", { style }, contentElement);
+    return React.createElement(
+      "div",
+      { style: containerStyle },
+      ContentComponent
+    );
   }
 }
 
