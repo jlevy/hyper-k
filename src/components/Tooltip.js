@@ -27,12 +27,74 @@ class Tooltip extends React.Component {
     this.state = {
       visiblePosition: props.position,
       transitioning: false,
+      visible: props.visible,
+      lastMouseMoveTime: Date.now(),
+      typingHidden: false,
     };
+    this.handleUserTyping = this.handleUserTyping.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+  }
+
+  componentDidMount() {
+    document.addEventListener("keydown", this.handleUserTyping, true);
+    document.addEventListener("mousemove", this.handleMouseMove, true);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleUserTyping, true);
+    document.removeEventListener("mousemove", this.handleMouseMove, true);
+  }
+
+  handleUserTyping(event) {
+    if (this.state.visible) {
+      this.setState({
+        transitioning: true,
+        typingHidden: true,
+      });
+
+      setTimeout(() => {
+        this.setState({
+          visible: false,
+          transitioning: false,
+        });
+      }, 200);
+    }
+  }
+
+  handleMouseMove(event) {
+    this.setState({
+      lastMouseMoveTime: Date.now(),
+    });
+  }
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    // Check if mouse has actually moved recently
+    const mouseHasMoved = Date.now() - prevState.lastMouseMoveTime < 500;
+
+    if (mouseHasMoved) {
+      return {
+        visible: nextProps.visible,
+        visiblePosition: nextProps.position,
+        typingHidden: false,
+      };
+    }
+
+    // If mouse hasn't moved or was hidden by typing, keep it hidden
+    if (!mouseHasMoved && prevState.typingHidden) {
+      return {
+        visible: false,
+      };
+    }
+
+    return null;
   }
 
   componentDidUpdate(prevProps) {
     // Transition more smoothly from one position to another.
-    if (prevProps.position !== this.props.position) {
+    if (
+      prevProps.position.x !== this.props.position.x ||
+      prevProps.position.y !== this.props.position.y
+    ) {
       // Start fade out
       this.setState({ transitioning: true });
 
@@ -47,8 +109,8 @@ class Tooltip extends React.Component {
   }
 
   render() {
-    const { visible, content, previewUrl, fontSize } = this.props;
-    const { visiblePosition, transitioning } = this.state;
+    const { content, previewUrl, fontSize } = this.props;
+    const { visiblePosition, transitioning, visible } = this.state;
 
     const VIEWPORT_HEIGHT = window.innerHeight;
     const TOP_THRESHOLD = VIEWPORT_HEIGHT * 0.1; // Top 10% of screen

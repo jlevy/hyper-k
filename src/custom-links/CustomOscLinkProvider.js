@@ -100,7 +100,7 @@ class CustomOscLinkProvider {
               },
               // XXX You would think you could control the persistent non-hover styling of links
               // here. But no as of xterm.js v5. OSC links are hard-coded as dashed links.
-              activate: (e, text) => this._activate(e, text),
+              activate: (e, text) => this._activate(e, text, range),
               hover: (e, text) => this._hover(e, text, range),
               leave: (e, text) => this._leave(e, text, range),
             });
