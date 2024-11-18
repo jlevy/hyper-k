@@ -1,6 +1,12 @@
 const React = require("react");
 const IframeTooltip = require("./IframeTooltip");
 const PlainTooltip = require("./PlainTooltip");
+const {
+  CONTENT_TOOLTIP_WIDTH,
+  CONTENT_TOOLTIP_HEIGHT,
+  SMALL_TOOLTIP_WIDTH,
+  SMALL_TOOLTIP_HEIGHT,
+} = require("./tooltip-constants");
 
 const TRANSITION_DURATION = 250;
 
@@ -97,8 +103,8 @@ class Tooltip extends React.Component {
 
     // Get tooltip dimensions based on content type
     const tooltipDimensions = previewUrl
-      ? { width: 400, height: 600 } // IframeTooltip dimensions
-      : { width: 300, height: 100 }; // PlainTooltip approximate dimensions
+      ? { width: CONTENT_TOOLTIP_WIDTH, height: CONTENT_TOOLTIP_HEIGHT }
+      : { width: SMALL_TOOLTIP_WIDTH, height: SMALL_TOOLTIP_HEIGHT };
 
     // Adjust position to fit viewport
     const adjustedPosition = adjustCoordsToViewport(

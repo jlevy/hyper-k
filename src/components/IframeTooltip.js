@@ -1,9 +1,13 @@
 const React = require("react");
+const {
+  CONTENT_TOOLTIP_WIDTH,
+  CONTENT_TOOLTIP_HEIGHT,
+} = require("./tooltip-constants");
 
 const containerStyle = {
   backgroundColor: "transparent",
-  width: "400px",
-  height: "600px", // TODO: Adapt size more intelligently.
+  width: CONTENT_TOOLTIP_WIDTH + "px",
+  height: CONTENT_TOOLTIP_HEIGHT + "px",
   overflow: "hidden",
   pointerEvents: "auto", // Allow interactions within iframe
   transition: "opacity 0.2s ease-in, visibility 0.2s ease-in",

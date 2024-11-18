@@ -1,13 +1,14 @@
 const React = require("react");
 const colors = require("../colors");
+const { SMALL_TOOLTIP_WIDTH } = require("./tooltip-constants");
 
 const plainTooltipContainerStyle = {
-  backgroundColor: colors.tooltip,
+  backgroundColor: colors.tooltip_bg,
   color: colors.foreground,
   padding: "5px",
   borderRadius: "4px",
   pointerEvents: "auto", // Allow interactions within tooltip if needed
-  maxWidth: "300px",
+  maxWidth: SMALL_TOOLTIP_WIDTH + "px",
   wordWrap: "break-word",
   fontSize: "12px", // Default font size; can be overridden via props
 };

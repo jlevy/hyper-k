@@ -46,7 +46,7 @@ const colors = {
   border: "hsl(231, 17%, 16%)",
   cursor: "hsl(305, 84%, 68%)",
   selection: "hsla(305, 32%, 72%, 0.58)",
-  tooltip: "hsla(60, 9%, 49%, 0.952)",
+  tooltip_bg: "hsla(44, 6%, 40%, 0.95)",
   bright: "hsl(134, 43%, 60%)",
 };
 
