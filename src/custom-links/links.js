@@ -82,7 +82,6 @@ const decorateTerm = (Term) => {
     hideTooltip() {
       this.setState({
         tooltipVisible: false,
-        tooltipPreviewUrl: null,
       });
     }
 

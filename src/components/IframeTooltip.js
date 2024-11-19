@@ -11,6 +11,7 @@ class IframeTooltip extends React.Component {
       height: 0,
       width: 0,
     };
+    this.handleIframeMessage = this.handleIframeMessage.bind(this);
   }
 
   componentDidMount() {
@@ -22,7 +23,7 @@ class IframeTooltip extends React.Component {
   }
 
   // We support messages from the iframe content to resize the iframe.
-  handleIframeMessage = (event) => {
+  handleIframeMessage(event) {
     console.debug("IframeTooltip: handleIframeMessage", event);
 
     // Verify message origin for security
@@ -55,7 +56,7 @@ class IframeTooltip extends React.Component {
       );
       return;
     }
-  };
+  }
 
   render() {
     const width = Math.min(
@@ -73,6 +74,8 @@ class IframeTooltip extends React.Component {
       overflow: "hidden",
       pointerEvents: "auto", // Allow interactions within iframe
       transition: "opacity 0.2s ease-in, visibility 0.2s ease-in",
+      cursor: "text", // Add text selection cursor
+      userSelect: "text", // Ensure text can be selected
     };
 
     const iframeStyle = {
@@ -83,6 +86,7 @@ class IframeTooltip extends React.Component {
     };
 
     const { src, fontSize } = this.props;
+    // TODO: Consider sending a message to the iframe to set the zoom level?
     return React.createElement(
       "div",
       { style: containerStyle },

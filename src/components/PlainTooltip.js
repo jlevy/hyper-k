@@ -10,7 +10,9 @@ const plainTooltipContainerStyle = {
   pointerEvents: "auto", // Allow interactions within tooltip if needed
   maxWidth: SMALL_TOOLTIP_WIDTH + "px",
   wordWrap: "break-word",
-  fontSize: "12px", // Default font size; can be overridden via props
+  fontSize: "12px",
+  cursor: "default",
+  userSelect: "text",
 };
 
 class PlainTooltip extends React.Component {

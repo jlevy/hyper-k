@@ -7,6 +7,8 @@ const {
 } = require("./tooltip-constants");
 
 const TRANSITION_DURATION = 250;
+const MOUSE_MOVE_TIMEOUT = 500;
+const VISIBLE_TIMEOUT = 500;
 
 class Tooltip extends React.Component {
   constructor(props) {
@@ -17,9 +19,13 @@ class Tooltip extends React.Component {
       visible: props.visible,
       lastMouseMoveTime: Date.now(),
       typingHidden: false,
+      isHovered: false,
+      hideTimeout: null,
     };
     this.handleUserTyping = this.handleUserTyping.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleTooltipMouseEnter = this.handleTooltipMouseEnter.bind(this);
+    this.handleTooltipMouseLeave = this.handleTooltipMouseLeave.bind(this);
   }
 
   componentDidMount() {
@@ -30,6 +36,9 @@ class Tooltip extends React.Component {
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleUserTyping, true);
     document.removeEventListener("mousemove", this.handleMouseMove, true);
+    if (this.state.hideTimeout) {
+      clearTimeout(this.state.hideTimeout);
+    }
   }
 
   handleUserTyping(event) {
@@ -54,11 +63,60 @@ class Tooltip extends React.Component {
     });
   }
 
+  handleTooltipMouseEnter() {
+    this.setState({ isHovered: true });
+  }
+
+  setHideTimeout() {
+    // Clear any existing timeout
+    if (this.state.hideTimeout) {
+      clearTimeout(this.state.hideTimeout);
+    }
+
+    // Set new timeout and keep tooltip visible for a little longer
+    const hideTimeout = setTimeout(() => {
+      this.setState({
+        visible: false,
+        hideTimeout: null,
+      });
+    }, VISIBLE_TIMEOUT);
+
+    return hideTimeout;
+  }
+
+  handleTooltipMouseLeave() {
+    const hideTimeout = this.setHideTimeout();
+    this.setState({
+      hideTimeout,
+      isHovered: false,
+    });
+  }
+
   static getDerivedStateFromProps(nextProps, prevState) {
     // Check if mouse has actually moved recently
-    const mouseHasMoved = Date.now() - prevState.lastMouseMoveTime < 500;
+    const mouseHasMoved =
+      Date.now() - prevState.lastMouseMoveTime < MOUSE_MOVE_TIMEOUT;
+
+    // Keep tooltip visible if it's being hovered
+    if (prevState.isHovered) {
+      return {
+        visible: true,
+        visiblePosition: prevState.visiblePosition,
+        typingHidden: false,
+      };
+    }
 
     if (mouseHasMoved) {
+      // If we have an active hideTimeout, keep current position and content
+      if (prevState.hideTimeout) {
+        return {
+          visible: true,
+          // Don't update position during timeout to keep the old tooltip in place
+          typingHidden: false,
+        };
+      }
+
+      // If no timeout, follow the props
       return {
         visible: nextProps.visible,
         visiblePosition: nextProps.position,
@@ -77,7 +135,17 @@ class Tooltip extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    // Transition more smoothly from one position to another.
+    // Handle visibility changes.
+    if (prevProps.visible && !this.props.visible) {
+      const hideTimeout = this.setHideTimeout();
+      this.setState({
+        visible: true,
+        hideTimeout,
+        visiblePosition: prevProps.position,
+      });
+    }
+
+    // Handle position transitions
     if (
       prevProps.position.x !== this.props.position.x ||
       prevProps.position.y !== this.props.position.y
@@ -119,7 +187,6 @@ class Tooltip extends React.Component {
       left: adjustedPosition.x,
       top: adjustedPosition.y,
       zIndex: 1000,
-      pointerEvents: "none",
       opacity: visible && !transitioning ? 1 : 0,
       visibility: visible ? "visible" : "hidden",
       transition: `
@@ -147,7 +214,11 @@ class Tooltip extends React.Component {
 
     return React.createElement(
       "div",
-      { style: containerStyle },
+      {
+        style: containerStyle,
+        onMouseEnter: this.handleTooltipMouseEnter,
+        onMouseLeave: this.handleTooltipMouseLeave,
+      },
       ContentComponent
     );
   }
