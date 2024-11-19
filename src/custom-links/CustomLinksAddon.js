@@ -220,7 +220,11 @@ class CustomLinksAddon {
         // significance for Kmd (and aren't likely to appear otherwise).
         filter: (line, match) => match.matchText[0] !== "@",
         hover: (event, text, range) => {
-          console.log("Command/path hover", [event, text, range]);
+          console.debug("CustomLinksAddon: command/path hover", [
+            event,
+            text,
+            range,
+          ]);
           this.showTooltip(event, "Click to paste", null, range);
         },
         leave: () => this.hideTooltip(),

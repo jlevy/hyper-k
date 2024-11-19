@@ -73,7 +73,6 @@ class IframeTooltip extends React.Component {
       height: height + "px",
       overflow: "hidden",
       pointerEvents: "auto", // Allow interactions within iframe
-      transition: "opacity 0.2s ease-in, visibility 0.2s ease-in",
       cursor: "text", // Add text selection cursor
       userSelect: "text", // Ensure text can be selected
     };
