@@ -12,9 +12,12 @@ const {
 const {
   decorateTerm: highlightsDecorateTerm,
 } = require("./custom-highlights/highlights");
+const {
+  middleware: notificationMiddleware,
+} = require("./custom-notifications/notifications");
 
 exports.decorateTerm = (Term, { React, notify }) => {
-  console.log("Decorating term", Term);
+  console.log("hyper-k: Decorating term", Term);
 
   let DecoratedTerm = Term;
 
@@ -29,7 +32,25 @@ exports.decorateTerm = (Term, { React, notify }) => {
   return DecoratedTerm;
 };
 
-exports.middleware = imageMiddleware;
+// Helper to compose middleware (similar to Redux's compose).
+const composeMiddleware =
+  (...middlewares) =>
+  (store) =>
+  (next) =>
+  (action) => {
+    // Convert each middleware into a chain of functions
+    const chain = middlewares.map((middleware) => middleware(store));
+    // Compose them right-to-left (Redux standard)
+    const composed = chain.reduceRight(
+      (next_, middleware) => middleware(next_),
+      next
+    );
+    // Execute the composed chain
+    return composed(action);
+  };
+
+exports.middleware = composeMiddleware(notificationMiddleware, imageMiddleware);
+
 exports.reduceUI = imageReducer;
 exports.mapTermsState = imageMapTermsState;
 exports.getTermGroupProps = imageGetTermProps;

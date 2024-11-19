@@ -77,7 +77,7 @@ function hotfixUnderlineStyle(addon, xterm) {
     set: addon._originalUnderlineStyleProp.set, // Use original setter
   });
 
-  console.log("Patched ExtendedAttrs.underlineStyle getter");
+  console.log("CustomLinksAddon: patched ExtendedAttrs.underlineStyle");
 }
 
 // Restore the original underlineStyle getter
@@ -125,13 +125,16 @@ class CustomLinksAddon {
     xterm._core.linkifier2._linkProviders =
       xterm._core.linkifier2._linkProviders.filter((provider) => {
         if (provider._oscLinkService !== undefined) {
-          console.log("Removing old OscLinkProvider", provider);
+          console.log(
+            "CustomLinksAddon: removing old OscLinkProvider",
+            provider
+          );
           return false;
         }
         return true;
       });
     console.log(
-      "Cleaned up link providers",
+      "CustomLinksAddon: cleaned up link providers",
       xterm._core.linkifier2._linkProviders
     );
 
@@ -147,7 +150,7 @@ class CustomLinksAddon {
     xterm._core._oscLinkService = customOscLinkService;
     xterm._core._inputHandler._oscLinkService = customOscLinkService;
 
-    console.log("Replaced OSC link service", {
+    console.log("CustomLinksAddon: replaced OSC link service", {
       old: oldService,
       new: customOscLinkService,
     });
@@ -166,10 +169,10 @@ class CustomLinksAddon {
       return this.linkClick.handle(event, url, range, xterm, linkText);
     };
     const hover = (event, text, range) => {
-      console.log("OSC link hover", [event, text, range]);
       // Enable preview for links.
       // TODO: Consider fetching content and rendering title/etc for non-recognized URLs,
       // and doing full preview on known URLs (including localhost content).
+      console.debug("CustomLinksAddon: OSC link hover", [event, text, range]);
       const previewUrl = text;
       this.showTooltip(event, `Open link: ${previewUrl}`, previewUrl, range);
     };
@@ -192,7 +195,11 @@ class CustomLinksAddon {
         handler: (event, text, range) =>
           this.linkClick.handle(event, text, range, xterm),
         hover: (event, text, range) => {
-          console.log("URL link hover", [event, text, range]);
+          console.debug("CustomLinksAddon: URL link hover", [
+            event,
+            text,
+            range,
+          ]);
           const previewUrl = text;
           this.showTooltip(
             event,
@@ -241,7 +248,7 @@ class CustomLinksAddon {
       );
       this.linkProviders.push(xterm.registerLinkProvider(linkProvider));
 
-      console.log("Loaded link provider", {
+      console.log("CustomLinksAddon: loaded link provider", {
         matcher,
         handler,
         filter,

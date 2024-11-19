@@ -28,7 +28,7 @@ class CustomOscLinkService {
   }
 
   registerLink(data) {
-    console.log("CustomOscLinkService.registerLink called with data:", data);
+    console.debug("CustomOscLinkService: registerLink called", { data });
 
     const buffer = this._bufferService.buffer;
 
@@ -40,7 +40,7 @@ class CustomOscLinkService {
         id: this._nextId++,
         lines: [marker],
       };
-      console.log("Registering link without id:", entry);
+      console.debug("CustomOscLinkService: registerLink without id", { entry });
       marker.onDispose(() => this._removeMarkerFromLink(entry, marker));
       this._dataByLinkId.set(entry.id, entry);
       return entry.id;
@@ -50,7 +50,9 @@ class CustomOscLinkService {
     const key = this._getEntryIdKey(data);
     const match = this._entriesWithId.get(key);
     if (match) {
-      console.log("Found existing link:", match);
+      console.debug("CustomOscLinkService: registerLink found existing link", {
+        match,
+      });
       this.addLineToLink(match.id, buffer.ybase + buffer.y);
       return match.id;
     }
@@ -63,7 +65,7 @@ class CustomOscLinkService {
       data,
       lines: [marker],
     };
-    console.log("Registering new link with id:", entry);
+    console.debug("CustomOscLinkService: registerLink with id", { entry });
 
     marker.onDispose(() => this._removeMarkerFromLink(entry, marker));
     this._entriesWithId.set(entry.key, entry);
@@ -85,7 +87,7 @@ class CustomOscLinkService {
 
   getLinkData(linkId) {
     const entry = this._dataByLinkId.get(linkId);
-    console.log("getLinkData called for id:", linkId, "found entry:", entry);
+    console.debug("CustomOscLinkService.getLinkData", { linkId, entry });
     return entry?.data;
   }
 

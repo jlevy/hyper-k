@@ -66,7 +66,7 @@ class CustomOscLinkProvider {
 
       if (finishLink || (currentStart !== -1 && x === lineLength - 1)) {
         const text = this._oscLinkService.getLinkData(currentLinkId)?.uri;
-        console.log("CustomOscLinkProvider.provideLinks found link text", {
+        console.debug("CustomOscLinkProvider: found link text", {
           oscLinkService: this._oscLinkService,
           currentLinkId,
           text,
@@ -86,7 +86,7 @@ class CustomOscLinkProvider {
           };
 
           if (isAllowedUrl(text)) {
-            console.log("CustomOscLinkProvider.provideLinks found link", {
+            console.debug("CustomOscLinkProvider: found allowed link", {
               text,
             });
             result.push({

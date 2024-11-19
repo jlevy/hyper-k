@@ -2,7 +2,7 @@ const { isUrl } = require("../regex-constants");
 
 // Custom handler to paste text into the terminal.
 function handlePasteText(event, text, range, xterm, linkText) {
-  console.log("Paste text to terminal", {
+  console.debug("handlePasteText: paste to terminal", {
     event,
     text,
     range,
@@ -41,7 +41,7 @@ function handlePasteText(event, text, range, xterm, linkText) {
 }
 
 function handleOpenLinkWindow(event, uri, range, xterm, linkText) {
-  console.log("handleOpenLinkWindow: Opening UR", {
+  console.log("handleOpenLinkWindow: Opening URL", {
     uri,
     event,
     range,
@@ -58,7 +58,9 @@ function handleOpenLinkWindow(event, uri, range, xterm, linkText) {
     }
     newWindow.location.href = uri;
   } else {
-    console.warn("Opening link blocked as opener could not be cleared");
+    console.warn(
+      "handleOpenLinkWindow: Opening link blocked as opener could not be cleared"
+    );
   }
 }
 

@@ -9,7 +9,9 @@ const {
 // Function to remove old addons.
 // XXX This is a hack but not sure of a better way.
 function removeOldAddons(xterm) {
-  console.log("Cleaning up original addons", [...xterm._addonManager._addons]);
+  console.log("links: Cleaning up original addons", [
+    ...xterm._addonManager._addons,
+  ]);
 
   xterm._addonManager._addons.forEach((addon) => {
     // Name isn't preserved after minification so we have to infer which is
@@ -20,12 +22,12 @@ function removeOldAddons(xterm) {
       (addon.instance._useLinkProvider !== undefined ||
         addon.instance._linkProvider !== undefined)
     ) {
-      console.log("Removing old WebLinksAddon instance", addon);
+      console.log("links: removing old WebLinksAddon instance", addon);
       addon.instance.dispose();
     }
   });
 
-  console.log("Cleaned up addons", [...xterm._addonManager._addons]);
+  console.log("links: Cleaned up addons", [...xterm._addonManager._addons]);
 }
 
 // Upper right of the range of chars.
@@ -57,7 +59,13 @@ const decorateTerm = (Term) => {
 
     showTooltip(event, text, previewUrl, range) {
       const xterm = this._term.term;
-      console.log("showTooltip", { event, text, previewUrl, range, xterm });
+      console.log("links: showTooltip", {
+        event,
+        text,
+        previewUrl,
+        range,
+        xterm,
+      });
 
       const cellDimensions = getCellDimensions(xterm);
       const position = pickTooltipPosition(xterm, range, cellDimensions);
@@ -72,7 +80,6 @@ const decorateTerm = (Term) => {
     }
 
     hideTooltip() {
-      console.log("hideTooltip");
       this.setState({
         tooltipVisible: false,
         tooltipPreviewUrl: null,
@@ -80,7 +87,7 @@ const decorateTerm = (Term) => {
     }
 
     onDecorated(term) {
-      console.log("link-addons onDecorated", term);
+      console.debug("links: onDecorated", term);
       if (term === null) {
         return;
       }
@@ -101,7 +108,7 @@ const decorateTerm = (Term) => {
       console.log("Customizing links", { xterm, linksAddon });
       xterm.loadAddon(linksAddon);
 
-      console.log("Final addons", [...xterm._addonManager._addons]);
+      console.log("links: Final addons", [...xterm._addonManager._addons]);
     }
 
     render() {

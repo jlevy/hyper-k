@@ -4,7 +4,7 @@ const KEY_CODE_BACKSPACE = 8;
 const KEY_CODE_ESCAPE = 27;
 
 const decorateTerm = (Term, { React }) => {
-  console.log("Decorating term for image view", Term);
+  console.log("image-view: decorating term", Term);
 
   return class extends React.Component {
     constructor(props, context) {
@@ -33,7 +33,7 @@ const decorateTerm = (Term, { React }) => {
     }
 
     onDecorated(term) {
-      console.log("onDecorated for image view", term);
+      console.log("custom-image-view: onDecorated", term);
       if (term === null) {
         return;
       }
@@ -96,7 +96,7 @@ const decorateTerm = (Term, { React }) => {
     }
 
     render() {
-      console.log("Rendering term with image view", this.props);
+      console.log("image-view: rendering term", this.props);
 
       return React.createElement(
         "div",
@@ -124,7 +124,7 @@ const middleware = (store) => (next) => (action) => {
     const match = data.match(new RegExp(IMAGE_URL_REGEX, "u"));
     if (match) {
       const imageUrl = match[0];
-      console.log("image-handler: Loading image URL", imageUrl);
+      console.debug("image-view: middleware dispatch HOOK_IMAGE", { imageUrl });
 
       store.dispatch({
         type: "HOOK_IMAGE",
@@ -139,7 +139,7 @@ const middleware = (store) => (next) => (action) => {
 const reducer = (state, action) => {
   switch (action.type) {
     case "HOOK_IMAGE":
-      console.log("Reduce HOOK_IMAGE", action);
+      console.debug("image-view: reducer HOOK_IMAGE", action);
       return state.set("imageViewState", {
         url: action.url,
       });
