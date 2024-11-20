@@ -4,11 +4,11 @@ const PlainTooltip = require("./PlainTooltip");
 const {
   CONTENT_TOOLTIP_INIT_SIZE,
   SMALL_TOOLTIP_SIZE,
-} = require("./tooltip-constants");
-
-const TRANSITION_DURATION = 250;
-const MOUSE_MOVE_TIMEOUT = 500;
-const VISIBLE_TIMEOUT = 500;
+  TRANSITION_DURATION,
+  MOUSE_MOVE_TIMEOUT,
+  VISIBLE_TIMEOUT,
+  COMPONENT_BOX_SHADOW,
+} = require("../custom-theme/theme-constants");
 
 class Tooltip extends React.Component {
   constructor(props) {
@@ -92,7 +92,51 @@ class Tooltip extends React.Component {
     });
   }
 
+  calculateAdjustedPosition(basePosition, width, height) {
+    // Apply offsets
+    const positionWithOffset = {
+      x: basePosition.x + 10, // Small horizontal offset
+      y: basePosition.y - 25, // Small upward offset
+    };
+
+    // Adjust to viewport
+    const adjustedPosition = adjustCoordsToViewport(
+      positionWithOffset,
+      width,
+      height
+    );
+
+    // Remove offsets for state storage
+    return {
+      x: adjustedPosition.x - 10,
+      y: adjustedPosition.y + 25,
+    };
+  }
+
+  handleIframeResize(newSize) {
+    this.setState({
+      visiblePosition: this.calculateAdjustedPosition(
+        this.state.visiblePosition,
+        newSize.width,
+        newSize.height
+      ),
+    });
+  }
+
   static getDerivedStateFromProps(nextProps, prevState) {
+    // If tooltip is being explicitly hidden via props
+    if (!nextProps.visible && prevState.visible) {
+      // Hide immediately
+      if (prevState.hideTimeout) {
+        clearTimeout(prevState.hideTimeout);
+      }
+      return {
+        visible: false,
+        hideTimeout: null,
+        transitioning: false,
+      };
+    }
+
     // Check if mouse has actually moved recently
     const mouseHasMoved =
       Date.now() - prevState.lastMouseMoveTime < MOUSE_MOVE_TIMEOUT;
@@ -172,20 +216,16 @@ class Tooltip extends React.Component {
       ? CONTENT_TOOLTIP_INIT_SIZE
       : SMALL_TOOLTIP_SIZE;
 
-    // Adjust position to fit viewport
-    const adjustedPosition = adjustCoordsToViewport(
-      {
-        x: visiblePosition.x + 10, // Small horizontal offset
-        y: visiblePosition.y - 25, // Small upward offset
-      },
+    const adjustedPosition = this.calculateAdjustedPosition(
+      visiblePosition,
       tooltipDimensions.width,
       tooltipDimensions.height
     );
 
     const containerStyle = {
       position: "fixed",
-      left: adjustedPosition.x,
-      top: adjustedPosition.y,
+      left: adjustedPosition.x + 10, // Re-add offset for display
+      top: adjustedPosition.y - 25, // Re-add offset for display
       zIndex: 1000,
       opacity: visible && !transitioning ? 1 : 0,
       visibility: visible ? "visible" : "hidden",
@@ -196,6 +236,7 @@ class Tooltip extends React.Component {
         height ${TRANSITION_DURATION}ms ease-in-out
       `,
       overflow: "hidden",
+      boxShadow: COMPONENT_BOX_SHADOW,
     };
 
     // Decide which tooltip content component to render

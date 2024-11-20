@@ -1,4 +1,5 @@
 const { URL_REGEX, COMMAND_OR_PATH_REGEX } = require("../regex-constants");
+const { isLocalUrl } = require("../utils/url-utils");
 const { insideMarkdownFenced } = require("./link-patterns");
 const { ClickHandler } = require("../utils/click-handler");
 const { handlePasteText, handleOpenLink } = require("./link-handlers");
@@ -94,20 +95,43 @@ function restoreUnderlineStyle(addon, xterm) {
 }
 
 class CustomLinksAddon {
-  constructor(tooltipHandlers) {
+  constructor(handlers) {
     this.linkProviders = [];
-    this.showTooltip = tooltipHandlers.showTooltip;
-    this.hideTooltip = tooltipHandlers.hideTooltip;
+    this.showTooltip = handlers.showTooltip;
+    this.hideTooltip = handlers.hideTooltip;
+    this.showIframe = handlers.showIframe;
+    this.hideIframe = handlers.hideIframe;
 
     // For links, we want to handle single and double clicks differently.
-    this.linkClick = new ClickHandler(
-      handlePasteText, // Single-click action
-      handleOpenLink // Double-click action
+    this.urlLinkClick = new ClickHandler(
+      // Single-click pastes URL
+      (event, previewUrl, range) => {
+        handlePasteText(event, previewUrl, range, this.xterm);
+      },
+      // Double-click shows iframe if available
+      (event, previewUrl, range) => {
+        console.log("CustomLinksAddon: URL link double-click", {
+          previewUrl,
+        });
+        if (isLocalUrl(previewUrl)) {
+          this.showIframe(previewUrl, range);
+        } else {
+          handleOpenLink(event, previewUrl, range, this.xterm);
+        }
+      }
     );
+
+    console.log("CustomLinksAddon: initialized", {
+      urlLinkClick: this.urlLinkClick,
+      iframeViewer: this.iframeViewer,
+    });
   }
 
   activate(xterm) {
     console.log("Activating CustomLinksAddon", xterm);
+    this.xterm = xterm;
+
+    // -- Hotfix underline style --
 
     try {
       hotfixUnderlineStyle(this, xterm);
@@ -166,7 +190,7 @@ class CustomLinksAddon {
     const activate = (event, url, range) => {
       // The link handler gives us the URL so we pass linkText so we know that too.
       const linkText = getTextInRange(xterm, range);
-      return this.linkClick.handle(event, url, range, xterm, linkText);
+      return this.urlLinkClick.handle(event, url, range, xterm, linkText);
     };
     const hover = (event, text, range) => {
       // Enable preview for links.
@@ -193,7 +217,7 @@ class CustomLinksAddon {
       {
         matcher: URL_REGEX,
         handler: (event, text, range) =>
-          this.linkClick.handle(event, text, range, xterm),
+          this.urlLinkClick.handle(event, text, range, xterm),
         hover: (event, text, range) => {
           console.debug("CustomLinksAddon: URL link hover", [
             event,
@@ -208,7 +232,9 @@ class CustomLinksAddon {
             range
           );
         },
-        leave: () => this.hideTooltip(),
+        leave: (event) => {
+          this.hideTooltip();
+        },
       },
 
       // Load custom addon for click-to-paste on commands or paths.
@@ -265,7 +291,8 @@ class CustomLinksAddon {
   dispose() {
     this.linkProviders.forEach((provider) => provider.dispose());
     this.linkProviders = [];
-    this.linkClick.destroy();
+    this.urlLinkClick.destroy();
+
     restoreUnderlineStyle(this, this.xterm);
   }
 }

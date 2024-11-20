@@ -1,6 +1,6 @@
-const React = require("react");
 const Tooltip = require("../components/Tooltip");
 const { CustomLinksAddon } = require("./CustomLinksAddon");
+const IframeViewer = require("../components/IframeViewer");
 const {
   getCellDimensions,
   cellToPixelCoords,
@@ -40,10 +40,11 @@ function pickTooltipPosition(xterm, range, cellDimensions) {
   };
 }
 
-const decorateTerm = (Term) => {
+const decorateTerm = (Term, { React }) => {
   return class extends React.Component {
     constructor(props) {
       super(props);
+      this.React = React;
       this._term = null;
       this.state = {
         tooltipVisible: false,
@@ -55,6 +56,7 @@ const decorateTerm = (Term) => {
       this.onDecorated = this.onDecorated.bind(this);
       this.showTooltip = this.showTooltip.bind(this);
       this.hideTooltip = this.hideTooltip.bind(this);
+      this.iframeViewerRef = this.React.createRef();
     }
 
     showTooltip(event, text, previewUrl, range) {
@@ -98,10 +100,28 @@ const decorateTerm = (Term) => {
 
       removeOldAddons(xterm);
 
-      // Add new custom links addon
+      // Add new custom links addon, pass showIframe method directly
       const linksAddon = new CustomLinksAddon({
         showTooltip: this.showTooltip,
         hideTooltip: this.hideTooltip,
+        showIframe: (src, range) => {
+          console.log("links: showIframe", {
+            src,
+            range,
+            iframeViewerRef: this.iframeViewerRef,
+          });
+          if (!this.iframeViewerRef.current) {
+            throw new Error("IframeViewer ref not available");
+          }
+          this.hideTooltip();
+          this.iframeViewerRef.current.showIframe(src, range, xterm);
+        },
+        hideIframe: () => {
+          console.log("links: hideIframe");
+          if (this.iframeViewerRef.current) {
+            this.iframeViewerRef.current.hideIframe();
+          }
+        },
       });
 
       console.log("Customizing links", { xterm, linksAddon });
@@ -117,23 +137,29 @@ const decorateTerm = (Term) => {
       // Remove any existing linkHandler.
       delete filteredOptions.linkHandler;
 
-      return React.createElement(
-        React.Fragment || "div",
-        null,
-        React.createElement(
-          Term,
-          Object.assign({}, props, {
+      // Create Term, Tooltip, and IframeViewer inside a Fragment
+      return this.React.createElement(
+        "div",
+        { style: { position: "relative", width: "100%", height: "100%" } },
+        this.React.createElement(
+          this.React.Fragment,
+          null,
+          this.React.createElement(Term, {
+            ...props,
             onDecorated: this.onDecorated,
             options: filteredOptions,
+          }),
+          this.React.createElement(Tooltip, {
+            visible: this.state.tooltipVisible,
+            content: this.state.tooltipContent,
+            position: this.state.tooltipPosition,
+            fontSize: this.state.tooltipFontSize,
+            previewUrl: this.state.tooltipPreviewUrl,
+          }),
+          this.React.createElement(IframeViewer, {
+            ref: this.iframeViewerRef,
           })
-        ),
-        React.createElement(Tooltip, {
-          visible: this.state.tooltipVisible,
-          content: this.state.tooltipContent,
-          position: this.state.tooltipPosition,
-          fontSize: this.state.tooltipFontSize,
-          previewUrl: this.state.tooltipPreviewUrl,
-        })
+        )
       );
     }
   };

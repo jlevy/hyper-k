@@ -1,0 +1,33 @@
+const TRANSITION_DURATION = 300;
+const MOUSE_MOVE_TIMEOUT = 500;
+const VISIBLE_TIMEOUT = 500;
+
+const POPOVER_TRANSITION = `opacity ${TRANSITION_DURATION}ms ease-in-out`;
+
+const COMPONENT_BOX_SHADOW = "0 5px 14px rgba(0, 0, 0, 0.8)";
+
+const CONTENT_TOOLTIP_INIT_SIZE = {
+  width: 600,
+  height: 200,
+};
+
+const CONTENT_TOOLTIP_MAX_SIZE = {
+  width: 1000,
+  height: 1000,
+};
+
+const SMALL_TOOLTIP_SIZE = {
+  width: 300,
+  height: 100,
+};
+
+module.exports = {
+  TRANSITION_DURATION,
+  MOUSE_MOVE_TIMEOUT,
+  VISIBLE_TIMEOUT,
+  POPOVER_TRANSITION,
+  COMPONENT_BOX_SHADOW,
+  CONTENT_TOOLTIP_INIT_SIZE,
+  CONTENT_TOOLTIP_MAX_SIZE,
+  SMALL_TOOLTIP_SIZE,
+};

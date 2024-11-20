@@ -1,6 +1,6 @@
 const React = require("react");
 const colors = require("../colors");
-const { SMALL_TOOLTIP_WIDTH } = require("./tooltip-constants");
+const { SMALL_TOOLTIP_WIDTH } = require("../custom-theme/theme-constants");
 
 const plainTooltipContainerStyle = {
   backgroundColor: colors.tooltip_bg,
