@@ -6,9 +6,21 @@ const {
   SMALL_TOOLTIP_SIZE,
   TRANSITION_DURATION,
   MOUSE_MOVE_TIMEOUT,
-  VISIBLE_TIMEOUT,
+  TOOLTIP_SHOW_DELAY,
+  TOOLTIP_HIDE_DELAY,
   COMPONENT_BOX_SHADOW,
 } = require("../custom-theme/theme-constants");
+
+// Keep tooltip within viewport bounds
+function adjustCoordsToViewport(coords, elementWidth, elementHeight) {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  return {
+    x: Math.max(0, Math.min(coords.x, viewportWidth - elementWidth)),
+    y: Math.max(0, Math.min(coords.y, viewportHeight - elementHeight)),
+  };
+}
 
 class Tooltip extends React.Component {
   constructor(props) {
@@ -16,12 +28,13 @@ class Tooltip extends React.Component {
     this.state = {
       visiblePosition: props.position,
       transitioning: false,
-      visible: props.visible,
+      visible: false, // Start as not visible
       lastMouseMoveTime: Date.now(),
       typingHidden: false,
       isHovered: false,
-      hideTimeout: null,
     };
+    this.hideTimeout = null;
+    this.showTimeout = null;
     this.handleUserTyping = this.handleUserTyping.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleTooltipMouseEnter = this.handleTooltipMouseEnter.bind(this);
@@ -36,8 +49,11 @@ class Tooltip extends React.Component {
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleUserTyping, true);
     document.removeEventListener("mousemove", this.handleMouseMove, true);
-    if (this.state.hideTimeout) {
-      clearTimeout(this.state.hideTimeout);
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+    }
+    if (this.showTimeout) {
+      clearTimeout(this.showTimeout);
     }
   }
 
@@ -65,29 +81,32 @@ class Tooltip extends React.Component {
 
   handleTooltipMouseEnter() {
     this.setState({ isHovered: true });
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+      this.hideTimeout = null;
+    }
   }
 
   setHideTimeout() {
     // Clear any existing timeout
-    if (this.state.hideTimeout) {
-      clearTimeout(this.state.hideTimeout);
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
     }
 
-    // Set new timeout and keep tooltip visible for a little longer
-    const hideTimeout = setTimeout(() => {
-      this.setState({
-        visible: false,
-        hideTimeout: null,
-      });
-    }, VISIBLE_TIMEOUT);
-
-    return hideTimeout;
+    // Set new timeout to hide the tooltip
+    this.hideTimeout = setTimeout(() => {
+      if (!this.state.isHovered) {
+        this.setState({
+          visible: false,
+        });
+      }
+      this.hideTimeout = null;
+    }, TOOLTIP_HIDE_DELAY);
   }
 
   handleTooltipMouseLeave() {
-    const hideTimeout = this.setHideTimeout();
+    this.setHideTimeout();
     this.setState({
-      hideTimeout,
       isHovered: false,
     });
   }
@@ -123,16 +142,12 @@ class Tooltip extends React.Component {
     });
   }
 
+  // Preserve getDerivedStateFromProps to handle mouse movement and typing
   static getDerivedStateFromProps(nextProps, prevState) {
     // If tooltip is being explicitly hidden via props
     if (!nextProps.visible && prevState.visible) {
-      // Hide immediately
-      if (prevState.hideTimeout) {
-        clearTimeout(prevState.hideTimeout);
-      }
       return {
         visible: false,
-        hideTimeout: null,
         transitioning: false,
       };
     }
@@ -151,18 +166,7 @@ class Tooltip extends React.Component {
     }
 
     if (mouseHasMoved) {
-      // If we have an active hideTimeout, keep current position and content
-      if (prevState.hideTimeout) {
-        return {
-          visible: true,
-          // Don't update position during timeout to keep the old tooltip in place
-          typingHidden: false,
-        };
-      }
-
-      // If no timeout, follow the props
       return {
-        visible: nextProps.visible,
         visiblePosition: nextProps.position,
         typingHidden: false,
       };
@@ -178,21 +182,33 @@ class Tooltip extends React.Component {
     return null;
   }
 
-  componentDidUpdate(prevProps) {
-    // Handle visibility changes.
-    if (prevProps.visible && !this.props.visible) {
-      const hideTimeout = this.setHideTimeout();
-      this.setState({
-        visible: true,
-        hideTimeout,
-        visiblePosition: prevProps.position,
-      });
+  componentDidUpdate(prevProps, prevState) {
+    // Handle visibility changes with delays
+
+    // Handle showing tooltip with TOOLTIP_SHOW_DELAY
+    if (!prevProps.visible && this.props.visible) {
+      if (this.showTimeout) {
+        clearTimeout(this.showTimeout);
+      }
+      this.showTimeout = setTimeout(() => {
+        this.setState({ visible: true });
+        this.showTimeout = null;
+      }, TOOLTIP_SHOW_DELAY);
     }
 
-    // Handle position transitions
+    // Handle hiding tooltip when visible changes to false
+    if (prevProps.visible && !this.props.visible) {
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+      }
+      this.setHideTimeout();
+    }
+
+    // Handle position changes when tooltip is visible
     if (
-      prevProps.position.x !== this.props.position.x ||
-      prevProps.position.y !== this.props.position.y
+      this.state.visible &&
+      (prevProps.position.x !== this.props.position.x ||
+        prevProps.position.y !== this.props.position.y)
     ) {
       // Start fade out
       this.setState({ transitioning: true });
@@ -204,6 +220,20 @@ class Tooltip extends React.Component {
           transitioning: false,
         });
       }, TRANSITION_DURATION);
+    }
+
+    // Handle typingHidden state
+    if (prevState.typingHidden && !this.state.typingHidden) {
+      // If typing has stopped and tooltip should be visible
+      if (this.props.visible) {
+        if (this.showTimeout) {
+          clearTimeout(this.showTimeout);
+        }
+        this.showTimeout = setTimeout(() => {
+          this.setState({ visible: true });
+          this.showTimeout = null;
+        }, TOOLTIP_SHOW_DELAY);
+      }
     }
   }
 
@@ -263,17 +293,6 @@ class Tooltip extends React.Component {
       ContentComponent
     );
   }
-}
-
-// Keep tooltip within viewport bounds
-function adjustCoordsToViewport(coords, elementWidth, elementHeight) {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-
-  return {
-    x: Math.max(0, Math.min(coords.x, viewportWidth - elementWidth)),
-    y: Math.max(0, Math.min(coords.y, viewportHeight - elementHeight)),
-  };
 }
 
 module.exports = Tooltip;

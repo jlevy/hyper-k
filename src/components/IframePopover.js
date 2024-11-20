@@ -73,8 +73,9 @@ class IframePopover extends React.Component {
       position: "fixed",
       left: position?.x || 0,
       top: position?.y || 0,
-      backgroundColor: colors.tooltip_bg,
-      padding: "0 4px",
+      backgroundColor: "transparent",
+      padding: 0, // Transparent content, only div header will have background.
+      border: `2px solid ${colors.popover_bg}`,
       boxShadow: COMPONENT_BOX_SHADOW,
       display: "flex",
       flexDirection: "column",
@@ -91,20 +92,31 @@ class IframePopover extends React.Component {
         onTransitionEnd: this.handleTransitionEnd,
       },
       React.createElement(
-        "button",
+        "div",
         {
-          onClick: onClose,
           style: {
-            alignSelf: "flex-end",
-            background: "none",
-            border: "none",
-            color: colors.foreground,
-            cursor: "pointer",
-            padding: 0,
-            fontSize: "16px",
+            backgroundColor: colors.popover_bg,
+            width: "100%",
+            padding: "0 4px",
+            display: "flex",
+            justifyContent: "flex-end",
           },
         },
-        "×"
+        React.createElement(
+          "button",
+          {
+            onClick: onClose,
+            style: {
+              background: "none",
+              border: "none",
+              color: colors.foreground,
+              cursor: "pointer",
+              padding: 0,
+              fontSize: "16px",
+            },
+          },
+          "×"
+        )
       ),
       React.createElement(DynamicIframe, {
         src,

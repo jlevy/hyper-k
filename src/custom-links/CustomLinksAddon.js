@@ -105,18 +105,18 @@ class CustomLinksAddon {
     // For links, we want to handle single and double clicks differently.
     this.urlLinkClick = new ClickHandler(
       // Single-click pastes URL
-      (event, previewUrl, range) => {
-        handlePasteText(event, previewUrl, range, this.xterm);
+      (event, previewUrl, range, xterm, linkText) => {
+        handlePasteText(event, previewUrl, range, xterm, linkText);
       },
       // Double-click shows iframe if available
-      (event, previewUrl, range) => {
+      (event, previewUrl, range, xterm, linkText) => {
         console.log("CustomLinksAddon: URL link double-click", {
           previewUrl,
         });
         if (isLocalUrl(previewUrl)) {
           this.showIframe(previewUrl, range);
         } else {
-          handleOpenLink(event, previewUrl, range, this.xterm);
+          handleOpenLink(event, previewUrl, range, xterm);
         }
       }
     );
