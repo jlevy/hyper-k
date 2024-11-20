@@ -79,7 +79,7 @@ class IframePopover extends React.Component {
       boxShadow: COMPONENT_BOX_SHADOW,
       display: "flex",
       flexDirection: "column",
-      zIndex: 990,
+      zIndex: 1010,
       opacity: this.props.open && !transitioning ? 1 : 0, // Fade in/out
       visibility: visible ? "visible" : "hidden", // Hide when not visible
       transition: POPOVER_TRANSITION,
@@ -125,6 +125,9 @@ class IframePopover extends React.Component {
         initialHeight: this.props?.height || 600,
         maxWidth: this.props?.maxWidth,
         maxHeight: this.props?.maxHeight,
+        // Keep popover full size:
+        minHeight: this.props?.height || 600,
+        minWidth: this.props?.width || 400,
       })
     );
   }

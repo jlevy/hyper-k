@@ -49,9 +49,13 @@ class DynamicIframe extends React.Component {
           width = Math.min(width, this.props.maxWidth);
         }
 
-        // Don't shrink smaller than its current size.
-        height = Math.max(height, this.state.height);
-        width = Math.max(width, this.state.width);
+        // Don't shrink smaller than the min height and width.
+        if (this.props.minHeight) {
+          height = Math.max(height, this.props.minHeight);
+        }
+        if (this.props.minWidth) {
+          width = Math.max(width, this.props.minWidth);
+        }
 
         console.log("IframeTooltip: final size", { height, width });
 

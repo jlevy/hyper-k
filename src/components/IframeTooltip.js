@@ -9,14 +9,22 @@ class IframeTooltip extends React.Component {
   render() {
     const { src, onResize } = this.props;
 
-    return React.createElement(DynamicIframe, {
-      src,
-      initialWidth: CONTENT_TOOLTIP_INIT_SIZE.width,
-      initialHeight: CONTENT_TOOLTIP_INIT_SIZE.height,
-      maxWidth: CONTENT_TOOLTIP_MAX_SIZE.width,
-      maxHeight: CONTENT_TOOLTIP_MAX_SIZE.height,
-      onResize,
-    });
+    return React.createElement(
+      "div",
+      {
+        style: {
+          pointerEvents: "auto",
+        },
+      },
+      React.createElement(DynamicIframe, {
+        src,
+        initialWidth: CONTENT_TOOLTIP_INIT_SIZE.width,
+        initialHeight: CONTENT_TOOLTIP_INIT_SIZE.height,
+        maxWidth: CONTENT_TOOLTIP_MAX_SIZE.width,
+        maxHeight: CONTENT_TOOLTIP_MAX_SIZE.height,
+        onResize,
+      })
+    );
   }
 }
 

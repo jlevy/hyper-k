@@ -131,7 +131,6 @@ const decorateTerm = (Term, { React }) => {
     }
 
     render() {
-      // Remove terminalOptions from props since we're handling links differently now.
       const { options, ...props } = this.props;
       const filteredOptions = { ...options };
       // Remove any existing linkHandler.
