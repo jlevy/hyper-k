@@ -65,6 +65,8 @@ function handleOpenLinkWindow(event, uri, range, xterm, linkText) {
 }
 
 function handleOpenLink(event, uri, range, xterm, linkText) {
+  console.log("handleOpenLink", { event, uri, range, xterm, linkText });
+
   if (isUrl(uri)) {
     console.log("handleOpenLink: Opening URL", {
       event,

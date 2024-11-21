@@ -96,15 +96,22 @@ class DynamicIframe extends React.Component {
       height: "100%",
       border: "none",
       overflow: "hidden",
+      pointerEvents: "auto",
     };
 
     return React.createElement(
       "div",
-      { style: containerStyle },
+      {
+        style: containerStyle,
+      },
       React.createElement("iframe", {
         src: src,
         style: iframeStyle,
-        sandbox: "allow-scripts allow-popups",
+        // TODO: Do we need allow-top-navigation and allow-top-navigation-by-user-activation?
+        sandbox:
+          "allow-top-navigation allow-top-navigation-by-user-activation " +
+          "allow-scripts allow-popups",
+        allow: "clipboard-read; clipboard-write",
       })
     );
   }
