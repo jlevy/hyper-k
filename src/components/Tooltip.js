@@ -8,6 +8,7 @@ const {
   MOUSE_MOVE_TIMEOUT,
   TOOLTIP_SHOW_DELAY,
   TOOLTIP_HIDE_DELAY,
+  TOOLTIP_BORDER_RADIUS,
   COMPONENT_BOX_SHADOW,
 } = require("../custom-theme/theme-constants");
 
@@ -26,14 +27,16 @@ class Tooltip extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      visiblePosition: props.position,
-      transitioning: false,
+      targetPosition: props.targetPosition, // Approximately where we want the tooltip.
+      currentContent: props.content,
+      currentPreviewUrl: props.previewUrl,
       visible: false, // Start as not visible
       lastMouseMoveTime: Date.now(),
       typingHidden: false,
       isHovered: false,
-      currentContent: props.content,
-      currentPreviewUrl: props.previewUrl,
+      tooltipDimensions: props.previewUrl
+        ? CONTENT_TOOLTIP_INIT_SIZE
+        : SMALL_TOOLTIP_SIZE,
     };
     this.hideTimeout = null;
     this.showTimeout = null;
@@ -90,24 +93,27 @@ class Tooltip extends React.Component {
     }
 
     // Handle visibility changes
-    if (!prevProps.visible && this.props.visible) {
+    if (!prevProps.activated && this.props.activated) {
       if (!this.state.typingHidden) {
         this.setShowTimeout(
-          this.props.position,
+          this.props.targetPosition,
           this.props.content,
           this.props.previewUrl
         );
       }
     } else if (
       !this.state.isHovered &&
-      ((prevProps.visible && !this.props.visible) ||
-        (!prevState.typingHidden && this.state.typingHidden))
+      prevProps.activated &&
+      !this.props.activated && // Only handle activation change
+      !this.hideTimeout // Only set timeout if not already set
     ) {
+      this.setHideTimeout();
+    } else if (!prevState.typingHidden && this.state.typingHidden) {
       this.setHideTimeout();
     }
   }
 
-  setShowTimeout(position, currentContent, currentPreviewUrl) {
+  setShowTimeout(targetPosition, currentContent, currentPreviewUrl) {
     clearTimeout(this.hideTimeout);
     this.hideTimeout = null;
 
@@ -115,7 +121,7 @@ class Tooltip extends React.Component {
     this.showTimeout = setTimeout(() => {
       this.setState({
         visible: true,
-        visiblePosition: position,
+        targetPosition,
         currentContent,
         currentPreviewUrl,
       });
@@ -123,7 +129,7 @@ class Tooltip extends React.Component {
     }, TOOLTIP_SHOW_DELAY);
   }
 
-  setHideTimeout() {
+  setHideTimeout(timeout = TOOLTIP_HIDE_DELAY) {
     clearTimeout(this.showTimeout);
     this.showTimeout = null;
 
@@ -131,68 +137,48 @@ class Tooltip extends React.Component {
     this.hideTimeout = setTimeout(() => {
       this.setState({ visible: false });
       this.hideTimeout = null;
-    }, TOOLTIP_HIDE_DELAY);
+    }, timeout);
   }
 
-  calculateAdjustedPosition(basePosition, width, height) {
-    // Apply offsets
-    const positionWithOffset = {
-      x: basePosition.x + 10, // Small horizontal offset
-      y: basePosition.y - 25, // Small upward offset
-    };
-
-    // Adjust to viewport
-    const adjustedPosition = adjustCoordsToViewport(
-      positionWithOffset,
-      width,
-      height
+  adjustPosition(targetPosition, tooltipDimensions) {
+    return adjustCoordsToViewport(
+      {
+        x: targetPosition.x + 10,
+        y: targetPosition.y - 25,
+      },
+      tooltipDimensions.width,
+      tooltipDimensions.height
     );
-
-    // Remove offsets for state storage
-    return {
-      x: adjustedPosition.x - 10,
-      y: adjustedPosition.y + 25,
-    };
   }
 
   handleIframeResize(newSize) {
-    this.setState({
-      visiblePosition: this.calculateAdjustedPosition(
-        this.state.visiblePosition,
-        newSize.width,
-        newSize.height
-      ),
-    });
+    console.log("Tooltip: handleIframeResize", newSize);
+    this.setState({ tooltipDimensions: newSize });
   }
 
   render() {
     const { fontSize } = this.props;
     const {
-      visiblePosition,
-      transitioning,
+      targetPosition,
       visible,
       currentContent,
       currentPreviewUrl,
+      tooltipDimensions,
     } = this.state;
 
-    // Use currentContent and currentPreviewUrl instead of props
-    const tooltipDimensions = currentPreviewUrl
-      ? CONTENT_TOOLTIP_INIT_SIZE
-      : SMALL_TOOLTIP_SIZE;
-
-    const adjustedPosition = this.calculateAdjustedPosition(
-      visiblePosition,
-      tooltipDimensions.width,
-      tooltipDimensions.height
+    const finalPosition = this.adjustPosition(
+      targetPosition,
+      tooltipDimensions
     );
 
     const containerStyle = {
       position: "fixed",
-      left: adjustedPosition.x + 10, // Re-add offset for display
-      top: adjustedPosition.y - 25, // Re-add offset for display
+      left: finalPosition.x,
+      top: finalPosition.y,
       zIndex: 1000,
-      opacity: visible && !transitioning ? 1 : 0,
+      opacity: visible ? 1 : 0,
       visibility: visible ? "visible" : "hidden",
+      borderRadius: TOOLTIP_BORDER_RADIUS,
       transition: `
         opacity ${TRANSITION_DURATION}ms ease-in,
         visibility ${TRANSITION_DURATION}ms ease-in,

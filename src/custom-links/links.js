@@ -46,8 +46,13 @@ const decorateTerm = (Term, { React }) => {
       super(props);
       this.React = React;
       this._term = null;
+
+      // We need to maintain state since we get it from the link provider, which is a canvas,
+      // and we can't therefore listen on target elements to trigger tooltips.
+      // "Activated" means the mouse has activated to the tooltip becuase of its position
+      // in the terminal. In the tooltip, "visible" means the tooltip is actually visible.
       this.state = {
-        tooltipVisible: false,
+        tooltipActivated: false,
         tooltipContent: "",
         tooltipPreviewUrl: null,
         tooltipPosition: { x: 0, y: 0 },
@@ -57,6 +62,7 @@ const decorateTerm = (Term, { React }) => {
       this.showTooltip = this.showTooltip.bind(this);
       this.hideTooltip = this.hideTooltip.bind(this);
       this.iframeViewerRef = this.React.createRef();
+      this.tooltipRef = this.React.createRef();
     }
 
     showTooltip(event, text, previewUrl, range) {
@@ -73,18 +79,28 @@ const decorateTerm = (Term, { React }) => {
       const position = pickTooltipPosition(xterm, range, cellDimensions);
 
       this.setState({
-        tooltipVisible: true,
+        tooltipActivated: true,
         tooltipContent: text,
         tooltipPosition: position,
         tooltipFontSize: `${cellDimensions.height}px`,
         tooltipPreviewUrl: previewUrl || null,
       });
+
+      if (this.tooltipRef.current) {
+        this.tooltipRef.current.setShowTimeout(position, text, previewUrl);
+      }
     }
 
-    hideTooltip() {
+    hideTooltip(immediate = false) {
       this.setState({
-        tooltipVisible: false,
+        tooltipActivated: false,
       });
+      // Note even if xterm thinks we aren't active, we still need to check if
+      // the actual tooltip is hovered.
+      if (this.tooltipRef.current && !this.tooltipRef.current.state.isHovered) {
+        console.log("links: hideTooltip immediate", immediate);
+        this.tooltipRef.current.setHideTimeout(immediate ? 0 : undefined);
+      }
     }
 
     onDecorated(term) {
@@ -103,7 +119,7 @@ const decorateTerm = (Term, { React }) => {
       // Add new custom links addon, pass showIframe method directly
       const linksAddon = new CustomLinksAddon({
         showTooltip: this.showTooltip,
-        hideTooltip: this.hideTooltip,
+        hideTooltip: () => this.hideTooltip(false),
         showIframe: (src, range) => {
           console.log("links: showIframe", {
             src,
@@ -113,7 +129,7 @@ const decorateTerm = (Term, { React }) => {
           if (!this.iframeViewerRef.current) {
             throw new Error("IframeViewer ref not available");
           }
-          this.hideTooltip();
+          this.hideTooltip(true);
           this.iframeViewerRef.current.showIframe(src, range, xterm);
         },
         hideIframe: () => {
@@ -149,9 +165,10 @@ const decorateTerm = (Term, { React }) => {
             options: filteredOptions,
           }),
           this.React.createElement(Tooltip, {
-            visible: this.state.tooltipVisible,
+            ref: this.tooltipRef,
+            activated: this.state.tooltipActivated,
+            targetPosition: this.state.tooltipPosition,
             content: this.state.tooltipContent,
-            position: this.state.tooltipPosition,
             fontSize: this.state.tooltipFontSize,
             previewUrl: this.state.tooltipPreviewUrl,
           }),

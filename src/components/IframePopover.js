@@ -3,6 +3,7 @@ const colors = require("../colors");
 const DynamicIframe = require("./DynamicIframe");
 const {
   POPOVER_TRANSITION,
+  POPOVER_BORDER_RADIUS,
   COMPONENT_BOX_SHADOW,
 } = require("../custom-theme/theme-constants");
 
@@ -76,10 +77,11 @@ class IframePopover extends React.Component {
       backgroundColor: "transparent",
       padding: 0, // Transparent content, only div header will have background.
       border: `2px solid ${colors.popover_bg}`,
+      borderRadius: POPOVER_BORDER_RADIUS,
       boxShadow: COMPONENT_BOX_SHADOW,
       display: "flex",
       flexDirection: "column",
-      zIndex: 1010,
+      zIndex: 990,
       opacity: this.props.open && !transitioning ? 1 : 0, // Fade in/out
       visibility: visible ? "visible" : "hidden", // Hide when not visible
       transition: POPOVER_TRANSITION,

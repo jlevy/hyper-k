@@ -6,7 +6,6 @@ const plainTooltipContainerStyle = {
   backgroundColor: colors.tooltip_bg,
   color: colors.foreground,
   padding: "5px",
-  borderRadius: "4px",
   pointerEvents: "auto", // Allow interactions within tooltip if needed
   maxWidth: SMALL_TOOLTIP_WIDTH + "px",
   wordWrap: "break-word",
