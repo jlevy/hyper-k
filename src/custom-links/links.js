@@ -5,31 +5,11 @@ const {
   getCellDimensions,
   cellToPixelCoords,
 } = require("../utils/xterm-utils");
-const { TOOLTIP_HIDE_DELAY } = require("../custom-theme/theme-constants");
-
-// Function to remove old addons.
-// XXX This is a hack but not sure of a better way.
-function removeOldAddons(xterm) {
-  console.log("links: Cleaning up original addons", [
-    ...xterm._addonManager._addons,
-  ]);
-
-  xterm._addonManager._addons.forEach((addon) => {
-    // Name isn't preserved after minification so we have to infer which is
-    // the WebLinksAddOn in xterm.js v4 or v5
-    if (
-      addon &&
-      addon.instance &&
-      (addon.instance._useLinkProvider !== undefined ||
-        addon.instance._linkProvider !== undefined)
-    ) {
-      console.log("links: removing old WebLinksAddon instance", addon);
-      addon.instance.dispose();
-    }
-  });
-
-  console.log("links: Cleaned up addons", [...xterm._addonManager._addons]);
-}
+const { hotfixRemoveOldAddons } = require("./xterm-remove-addons-hotfix");
+const {
+  TOOLTIP_HIDE_DELAY,
+  TOOLTIP_TRANSITION_DELAY,
+} = require("../custom-theme/theme-constants");
 
 // Upper right of the range of chars.
 function pickTooltipPosition(xterm, range, cellDimensions) {
@@ -88,7 +68,25 @@ const decorateTerm = (Term, { React }) => {
       });
 
       if (this.tooltipRef.current) {
-        this.tooltipRef.current.setShowTimeout(position, text, previewUrl);
+        // If tooltip is already visible, use quick transition
+        if (this.tooltipRef.current.state.visible) {
+          console.log("links: showTooltip: already visible, quick transition!");
+          this.tooltipRef.current.setHideThenShowTimeout(
+            300,
+            position,
+            text,
+            previewUrl
+          );
+        } else {
+          console.log("links: showTooltip: normal show");
+          // Normal show behavior for first tooltip
+          this.tooltipRef.current.setShowTimeout(
+            TOOLTIP_TRANSITION_DELAY,
+            position,
+            text,
+            previewUrl
+          );
+        }
       }
     }
 
@@ -115,7 +113,7 @@ const decorateTerm = (Term, { React }) => {
       this._term = term;
       const xterm = this._term.term;
 
-      removeOldAddons(xterm);
+      hotfixRemoveOldAddons(xterm);
 
       // Add new custom links addon, pass showIframe method directly
       const linksAddon = new CustomLinksAddon(xterm, {

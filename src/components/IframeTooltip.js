@@ -1,6 +1,7 @@
 const React = require("react");
 const DynamicIframe = require("./DynamicIframe");
 const {
+  VISIBILITY_TRANSITION,
   CONTENT_TOOLTIP_INIT_SIZE,
   CONTENT_TOOLTIP_MAX_SIZE,
 } = require("../custom-theme/theme-constants");
@@ -34,7 +35,7 @@ class IframeTooltip extends React.Component {
       pointerEvents: "auto",
       opacity: visible && iframeLoaded ? 1 : 0,
       visibility: visible && iframeLoaded ? "visible" : "hidden",
-      transition: "opacity 0.5s ease-in-out, visibility 0.5s ease-in-out",
+      transition: VISIBILITY_TRANSITION,
     };
 
     return React.createElement(

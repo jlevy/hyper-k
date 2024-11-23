@@ -79,7 +79,7 @@ function tryHotfix(addon, xterm) {
     set: addon._originalUnderlineStyleProp.set, // Use original setter
   });
 
-  console.log("CustomLinksAddon: patched ExtendedAttrs.underlineStyle");
+  console.log("xterm-underline-hotfix: patched ExtendedAttrs.underlineStyle");
 }
 
 // Restore the original underlineStyle getter

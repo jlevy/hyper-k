@@ -1,6 +1,7 @@
 const React = require("react");
 const colors = require("../colors");
 const {
+  VISIBILITY_TRANSITION,
   SMALL_TOOLTIP_WIDTH,
   UI_FONT_WEIGHT,
 } = require("../custom-theme/theme-constants");
@@ -25,7 +26,7 @@ class PlainTooltip extends React.Component {
       ...plainTooltipContainerStyle,
       fontSize: fontSize || "12px",
       opacity: visible ? 1 : 0,
-      transition: "opacity 1s ease-in-out, visibility 1s ease-in-out",
+      transition: VISIBILITY_TRANSITION,
     };
     return React.createElement("div", { style }, text);
   }

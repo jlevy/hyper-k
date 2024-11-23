@@ -2,7 +2,7 @@ const React = require("react");
 const colors = require("../colors");
 const DynamicIframe = require("./DynamicIframe");
 const {
-  POPOVER_TRANSITION,
+  VISIBILITY_TRANSITION,
   POPOVER_BORDER_RADIUS,
   COMPONENT_BOX_SHADOW,
   POPOVER_MIN_SIZE,
@@ -85,7 +85,7 @@ class IframePopover extends React.Component {
       zIndex: 990,
       opacity: this.props.open && !transitioning ? 1 : 0, // Fade in/out
       visibility: visible ? "visible" : "hidden", // Hide when not visible
-      transition: POPOVER_TRANSITION,
+      transition: VISIBILITY_TRANSITION,
       maxHeight: this.props?.maxHeight,
       maxWidth: this.props?.maxWidth,
     };

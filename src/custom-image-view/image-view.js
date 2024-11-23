@@ -1,5 +1,5 @@
 const { IMAGE_URL_REGEX } = require("../regex-constants");
-
+const { VISIBILITY_TRANSITION } = require("../custom-theme/theme-constants");
 const KEY_CODE_BACKSPACE = 8;
 const KEY_CODE_ESCAPE = 27;
 
@@ -67,7 +67,7 @@ const decorateTerm = (Term, { React }) => {
             display: "none",
             // Fade in/out effect:
             opacity: 0,
-            transition: "opacity 0.4s ease-in-out",
+            transition: VISIBILITY_TRANSITION,
           },
           src: null,
           id: "image-view",

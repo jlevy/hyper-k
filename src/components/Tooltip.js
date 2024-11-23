@@ -10,6 +10,7 @@ const {
   TOOLTIP_HIDE_DELAY,
   TOOLTIP_BORDER_RADIUS,
   COMPONENT_BOX_SHADOW,
+  COMPONENT_BOX_SHADOW_NONE,
 } = require("../custom-theme/theme-constants");
 
 // Keep tooltip within viewport bounds
@@ -95,6 +96,7 @@ class Tooltip extends React.Component {
     if (!prevProps.activated && this.props.activated) {
       if (!this.state.typingHidden) {
         this.setShowTimeout(
+          TOOLTIP_SHOW_DELAY,
           this.props.targetPosition,
           this.props.content,
           this.props.previewUrl
@@ -122,7 +124,7 @@ class Tooltip extends React.Component {
     this.hideTimeout = null;
   }
 
-  setShowTimeout(targetPosition, currentContent, currentPreviewUrl) {
+  setShowTimeout(timeout, targetPosition, currentContent, currentPreviewUrl) {
     this.clearHideTimeout();
 
     clearTimeout(this.showTimeout);
@@ -134,7 +136,7 @@ class Tooltip extends React.Component {
         currentPreviewUrl,
       });
       this.showTimeout = null;
-    }, TOOLTIP_SHOW_DELAY);
+    }, timeout);
   }
 
   setHideTimeout(timeout) {
@@ -142,9 +144,27 @@ class Tooltip extends React.Component {
 
     clearTimeout(this.hideTimeout);
     this.hideTimeout = setTimeout(() => {
+      console.log("Tooltip: now hiding");
       this.setState({ visible: false });
       this.hideTimeout = null;
     }, timeout);
+  }
+
+  setHideThenShowTimeout(
+    transitionTimeout,
+    targetPosition,
+    currentContent,
+    currentPreviewUrl
+  ) {
+    this.setHideTimeout(transitionTimeout);
+    setTimeout(() => {
+      this.setShowTimeout(
+        transitionTimeout,
+        targetPosition,
+        currentContent,
+        currentPreviewUrl
+      );
+    }, 2 * transitionTimeout);
   }
 
   adjustPosition(targetPosition, tooltipDimensions) {
@@ -178,6 +198,11 @@ class Tooltip extends React.Component {
       tooltipDimensions
     );
 
+    // Define the opacity for the drop-shadow
+    const boxShadow = visible
+      ? COMPONENT_BOX_SHADOW
+      : COMPONENT_BOX_SHADOW_NONE;
+
     const containerStyle = {
       position: "fixed",
       left: finalPosition.x,
@@ -187,13 +212,14 @@ class Tooltip extends React.Component {
       visibility: visible ? "visible" : "hidden",
       borderRadius: TOOLTIP_BORDER_RADIUS,
       transition: `
-        opacity ${TRANSITION_DURATION}ms ease-in,
-        visibility ${TRANSITION_DURATION}ms ease-in,
-        width ${TRANSITION_DURATION}ms ease-in-out,
-        height ${TRANSITION_DURATION}ms ease-in-out
+        opacity ${TRANSITION_DURATION}ms ease-in-out,
+        visibility ${TRANSITION_DURATION}ms ease-in-out,
+        filter ${TRANSITION_DURATION}ms ease-in-out
       `,
       overflow: "hidden",
-      boxShadow: COMPONENT_BOX_SHADOW,
+      // filter seems to animate the transition better than boxShadow
+      // boxShadow: $boxShadow,
+      filter: `drop-shadow(${boxShadow})`,
     };
 
     // Update ContentComponent to use state values and add visibility control
