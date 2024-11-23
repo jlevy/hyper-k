@@ -46,9 +46,11 @@ const colors = {
   border: "hsl(231, 17%, 16%)",
   cursor: "hsl(305, 84%, 68%)",
   selection: "hsla(305, 32%, 72%, 0.58)",
-  tooltip_bg: "hsla(44, 6%, 40%, 0.95)",
-  popover_bg: "hsla(0, 0%, 60%, 0.95)",
+  tooltip_bg: "hsla(44, 6%, 40%, 0.90)",
+  popover_bg: "hsla(0, 0%, 60%, 0.90)",
   bright: "hsl(134, 43%, 60%)",
+  link_hover_bg: "hsl(44, 6%, 50%)",
+  highlight_bg: "hsl(188, 15%, 22%)",
 };
 
 module.exports = colors;

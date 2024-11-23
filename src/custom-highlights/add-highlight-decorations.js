@@ -1,16 +1,16 @@
-const HIGHLIGHT_BG = "#2f3f3c";
+const colors = require("../colors");
 
-const addHighlights = (term, highlightRegex, filter) => {
-  const buffer = term.buffer.active;
-  const decorationService = term._core._decorationService;
+const addHighlights = (xterm, highlightRegex, filter) => {
+  const buffer = xterm.buffer.active;
 
   // Clear previous decorations.
-  if (term.decorations) {
-    term.decorations.forEach((decoration) => decoration.dispose());
+  if (xterm.decorations) {
+    xterm.decorations.forEach((decoration) => decoration.dispose());
   }
-  term.decorations = [];
+  xterm.decorations = [];
 
   // Decorate every match based on the regex.
+  // TODO: Consider only decorating visible lines.
   for (let lineIndex = 0; lineIndex < buffer.length; lineIndex++) {
     const regex = new RegExp(highlightRegex.source, "gu"); // Clear state.
 
@@ -32,24 +32,24 @@ const addHighlights = (term, highlightRegex, filter) => {
         hl_end = hl_start + match[0].length;
       }
 
-      const marker = term.registerMarker(
+      const marker = xterm.registerMarker(
         lineIndex - buffer._buffer.y - buffer._buffer.ybase
       );
 
-      const decoration = decorationService.registerDecoration({
+      const decoration = xterm.registerDecoration({
         marker: marker,
         x: hl_start,
         width: hl_end - hl_start,
-        backgroundColor: HIGHLIGHT_BG,
+        backgroundColor: colors.highlight_bg,
       });
-      term.decorations.push(decoration);
+      xterm.decorations.push(decoration);
     }
   }
 
-  term.refresh(0, buffer.length - 1);
+  xterm.refresh(0, buffer.length - 1);
 
   console.log(
-    `addHighlights registered ${term.decorations.length} decorations`
+    `addHighlights registered ${xterm.decorations.length} decorations`
   );
 };
 

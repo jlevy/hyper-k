@@ -6,6 +6,7 @@ const {
   POPOVER_BORDER_RADIUS,
   COMPONENT_BOX_SHADOW,
   TOOLTIP_MAX_HEIGHT,
+  TOOLTIP_MAX_WIDTH,
 } = require("../custom-theme/theme-constants");
 
 class IframePopover extends React.Component {
@@ -87,6 +88,7 @@ class IframePopover extends React.Component {
       visibility: visible ? "visible" : "hidden", // Hide when not visible
       transition: POPOVER_TRANSITION,
       maxHeight: this.props?.maxHeight || TOOLTIP_MAX_HEIGHT,
+      maxWidth: this.props?.maxWidth || TOOLTIP_MAX_WIDTH,
     };
 
     return React.createElement(

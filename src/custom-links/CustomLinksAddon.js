@@ -7,6 +7,7 @@ const { getTextInRange } = require("../utils/xterm-utils");
 const { CustomWebLinkProvider } = require("./CustomWebLinkProvider");
 const { CustomOscLinkProvider } = require("./CustomOscLinkProvider");
 const { CustomOscLinkService } = require("./CustomOscLinkService");
+const { RichUri, RichUriType } = require("../utils/rich-terminal-codes");
 
 const ExtFlags = {
   /**
@@ -193,12 +194,28 @@ class CustomLinksAddon {
       return this.urlLinkClick.handle(event, url, range, xterm, linkText);
     };
     const hover = (event, text, range) => {
-      // Enable preview for links.
-      // TODO: Consider fetching content and rendering title/etc for non-recognized URLs,
-      // and doing full preview on known URLs (including localhost content).
       console.debug("CustomLinksAddon: OSC link hover", [event, text, range]);
-      const previewUrl = text;
-      this.showTooltip(event, `Open link: ${previewUrl}`, previewUrl, range);
+      const richUri = RichUri.parse(text);
+      if (richUri) {
+        // TODO: Handle other RichUri types
+        if (richUri.type === RichUriType.TOOLTIP) {
+          this.showTooltip(event, richUri.metadata.text, null, range);
+          return;
+        } else if (richUri.type === RichUriType.URL) {
+          // Enable preview for links.
+          // TODO: Consider fetching content and rendering title/etc for non-recognized URLs,
+          // and doing full preview on known URLs (including localhost content).
+          const previewUrl = text;
+          this.showTooltip(
+            event,
+            `Open link: ${previewUrl}`,
+            previewUrl,
+            range
+          );
+          return;
+        }
+      }
+      console.warn("CustomLinksAddon: unsupported RichUri type", richUri);
     };
     const leave = (event) => {
       this.hideTooltip();

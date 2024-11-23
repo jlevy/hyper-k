@@ -24,7 +24,8 @@ exports.decorateTerm = (Term, { React, notify }) => {
   // Apply decorations in sequence.
   DecoratedTerm = linkAddonsDecorateTerm(DecoratedTerm, { React });
 
-  // Highlights is kind of slow and may not be necessary. Disable for now.
+  // Highlights is kind of slow as we operate on the whole buffer.
+  // Disabling for now.
   // DecoratedTerm = highlightsDecorateTerm(DecoratedTerm, { React });
 
   DecoratedTerm = imageDecorateTerm(DecoratedTerm, { React });

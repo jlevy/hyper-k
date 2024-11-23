@@ -5,17 +5,28 @@
  * @license MIT
  */
 
+const colors = require("../colors");
+
 const isAllowedUrl = (url) => {
   try {
     const parsed = new URL(url);
-    return ["http:", "https:"].includes(parsed.protocol);
+    const allowed = ["http:", "https:", "ui:"].includes(parsed.protocol);
+    if (!allowed) {
+      console.debug(
+        "CustomOscLinkProvider: not supporting disallowed link",
+        url
+      );
+    }
+    return allowed;
   } catch (e) {
+    console.debug("CustomOscLinkProvider: not supporting invalid link", url, e);
     return false;
   }
 };
 
 class CustomOscLinkProvider {
   constructor(xterm, activate, hover, leave) {
+    this._xterm = xterm;
     this._activate = activate;
     this._hover = hover;
     this._leave = leave;
@@ -94,15 +105,51 @@ class CustomOscLinkProvider {
               range,
               // Custom overrides that differ from xterm.js.
               // Important: these are for hover, not persistent styling.
-              decorations: {
-                underline: true,
-                pointerCursor: true,
-              },
               // XXX You would think you could control the persistent non-hover styling of links
               // here. But no as of xterm.js v5. OSC links are hard-coded as dashed links.
+              decorations: { underline: false, pointerCursor: true },
               activate: (e, text) => this._activate(e, text, range),
-              hover: (e, text) => this._hover(e, text, range),
-              leave: (e, text) => this._leave(e, text, range),
+              // Set up a custom decoration for hover (since ILinkDecorations only supports
+              // underline).
+              hover: (e, text) => {
+                // Create decoration
+                const buffer = this._xterm.buffer.active;
+                const lineIndex =
+                  range.start.y - 1 - buffer._buffer.y - buffer._buffer.ybase;
+                console.log(
+                  "CustomOscLinkProvider: hover creating decoration",
+                  {
+                    xterm: this._xterm,
+                    lineIndex,
+                  }
+                );
+                const marker = this._xterm.registerMarker(lineIndex);
+                if (marker) {
+                  this._currentDecoration = this._xterm.registerDecoration({
+                    marker,
+                    layer: "top",
+                    width: range.end.x - range.start.x + 1,
+                    height: 1,
+                    x: range.start.x - 1,
+                    backgroundColor: colors.link_hover_bg,
+                  });
+
+                  this._xterm.refresh(range.start.y - 1, range.start.y - 1);
+                }
+
+                // Call original hover handler
+                this._hover(e, text, range);
+              },
+              leave: (e, text) => {
+                // Clean up decoration
+                if (this._currentDecoration) {
+                  this._currentDecoration.dispose();
+                  this._currentDecoration = null;
+                }
+
+                // Call original leave handler
+                this._leave(e, text, range);
+              },
             });
           }
         }
