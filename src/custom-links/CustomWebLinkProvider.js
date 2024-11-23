@@ -5,6 +5,7 @@
  * Copyright (c) 2019 The xterm.js authors. All rights reserved.
  * @license MIT
  */
+const { LINK_DECORATIONS } = require("../custom-theme/theme-constants");
 
 class CustomWebLinkProvider {
   constructor(terminal, matchFunction, filter, handler, options = {}) {
@@ -43,25 +44,25 @@ class CustomWebLinkProvider {
       this._upRegex,
       this._downRegex
     );
-    callback(this._addCallbacks(links));
-  }
 
-  _addCallbacks(links) {
-    return links.map((link) => {
-      if (this._leave) {
-        link.leave = (event, text) => {
-          this._leave(event, text, link.range);
-        };
-      }
+    // Modify the links to add handlers and customize decorations.
+    const updatedLinks = links.map((link) => ({
+      ...link,
+      decorations: LINK_DECORATIONS,
+      // Add your hover/leave handlers
+      hover: (event, text) => {
+        if (this._options.hover) {
+          this._options.hover(event, text, link.range);
+        }
+      },
+      leave: (event, text) => {
+        if (this._options.leave) {
+          this._options.leave(event, text, link.range);
+        }
+      },
+    }));
 
-      if (this._hover) {
-        link.hover = (event, text) => {
-          this._hover(event, text, link.range);
-        };
-      }
-
-      return link;
-    });
+    callback(updatedLinks);
   }
 
   dispose() {

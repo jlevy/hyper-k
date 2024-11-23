@@ -5,8 +5,7 @@ const {
   POPOVER_TRANSITION,
   POPOVER_BORDER_RADIUS,
   COMPONENT_BOX_SHADOW,
-  TOOLTIP_MAX_HEIGHT,
-  TOOLTIP_MAX_WIDTH,
+  POPOVER_MIN_SIZE,
 } = require("../custom-theme/theme-constants");
 
 class IframePopover extends React.Component {
@@ -87,8 +86,8 @@ class IframePopover extends React.Component {
       opacity: this.props.open && !transitioning ? 1 : 0, // Fade in/out
       visibility: visible ? "visible" : "hidden", // Hide when not visible
       transition: POPOVER_TRANSITION,
-      maxHeight: this.props?.maxHeight || TOOLTIP_MAX_HEIGHT,
-      maxWidth: this.props?.maxWidth || TOOLTIP_MAX_WIDTH,
+      maxHeight: this.props?.maxHeight,
+      maxWidth: this.props?.maxWidth,
     };
 
     return React.createElement(
@@ -127,13 +126,13 @@ class IframePopover extends React.Component {
       React.createElement(DynamicIframe, {
         src,
         onResize: this.handleResize,
-        initialWidth: this.props?.width || 400,
-        initialHeight: this.props?.height || 600,
+        initialWidth: this.props?.width || POPOVER_MIN_SIZE.width,
+        initialHeight: this.props?.height || POPOVER_MIN_SIZE.height,
         maxWidth: this.props?.maxWidth,
-        maxHeight: this.props?.maxHeight || TOOLTIP_MAX_HEIGHT,
+        maxHeight: this.props?.maxHeight,
         // Keep popover full size:
-        minHeight: this.props?.height || 600,
-        minWidth: this.props?.width || 400,
+        minWidth: this.props?.width || POPOVER_MIN_SIZE.width,
+        minHeight: this.props?.height || POPOVER_MIN_SIZE.height,
       })
     );
   }

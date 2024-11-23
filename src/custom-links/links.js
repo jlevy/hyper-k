@@ -117,7 +117,7 @@ const decorateTerm = (Term, { React }) => {
       removeOldAddons(xterm);
 
       // Add new custom links addon, pass showIframe method directly
-      const linksAddon = new CustomLinksAddon({
+      const linksAddon = new CustomLinksAddon(xterm, {
         showTooltip: this.showTooltip,
         hideTooltip: () => this.hideTooltip(false),
         showIframe: (src, range) => {
