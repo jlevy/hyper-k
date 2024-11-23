@@ -70,17 +70,16 @@ class Tooltip extends React.Component {
     this.setState({ lastMouseMoveTime: Date.now() });
   }
 
+  // Entering the tooltip itself.
   handleTooltipMouseEnter() {
     this.setState({ isHovered: true });
-    if (this.hideTimeout) {
-      clearTimeout(this.hideTimeout);
-      this.hideTimeout = null;
-    }
+    this.clearHideTimeout();
   }
 
+  // Leaving the tooltip itself.
   handleTooltipMouseLeave() {
     this.setState({ isHovered: false });
-    this.setHideTimeout();
+    this.setHideTimeout(TOOLTIP_HIDE_DELAY);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -107,15 +106,24 @@ class Tooltip extends React.Component {
       !this.props.activated && // Only handle activation change
       !this.hideTimeout // Only set timeout if not already set
     ) {
-      this.setHideTimeout();
+      this.setHideTimeout(TOOLTIP_HIDE_DELAY);
     } else if (!prevState.typingHidden && this.state.typingHidden) {
-      this.setHideTimeout();
+      this.setHideTimeout(TOOLTIP_HIDE_DELAY);
     }
   }
 
-  setShowTimeout(targetPosition, currentContent, currentPreviewUrl) {
+  clearShowTimeout() {
+    clearTimeout(this.showTimeout);
+    this.showTimeout = null;
+  }
+
+  clearHideTimeout() {
     clearTimeout(this.hideTimeout);
     this.hideTimeout = null;
+  }
+
+  setShowTimeout(targetPosition, currentContent, currentPreviewUrl) {
+    this.clearHideTimeout();
 
     clearTimeout(this.showTimeout);
     this.showTimeout = setTimeout(() => {
@@ -129,9 +137,8 @@ class Tooltip extends React.Component {
     }, TOOLTIP_SHOW_DELAY);
   }
 
-  setHideTimeout(timeout = TOOLTIP_HIDE_DELAY) {
-    clearTimeout(this.showTimeout);
-    this.showTimeout = null;
+  setHideTimeout(timeout) {
+    this.clearShowTimeout();
 
     clearTimeout(this.hideTimeout);
     this.hideTimeout = setTimeout(() => {
@@ -189,18 +196,20 @@ class Tooltip extends React.Component {
       boxShadow: COMPONENT_BOX_SHADOW,
     };
 
-    // Update ContentComponent to use state values
+    // Update ContentComponent to use state values and add visibility control
     let ContentComponent;
     if (currentPreviewUrl) {
       ContentComponent = React.createElement(IframeTooltip, {
         src: currentPreviewUrl,
         fontSize,
         onResize: this.handleIframeResize.bind(this),
+        visible: visible, // Pass visibility state
       });
     } else {
       ContentComponent = React.createElement(PlainTooltip, {
         text: currentContent,
         fontSize,
+        visible: visible, // Pass visibility state
       });
     }
 

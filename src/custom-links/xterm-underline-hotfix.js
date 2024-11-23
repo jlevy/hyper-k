@@ -22,6 +22,17 @@ const UnderlineStyle = {
  * We just hotfix it here.
  */
 function hotfixUnderlineStyle(addon, xterm) {
+  try {
+    tryHotfix(addon, xterm);
+  } catch (error) {
+    console.error(
+      "Error hotfixing underline style, maybe use Hyper v4?",
+      error
+    );
+  }
+}
+
+function tryHotfix(addon, xterm) {
   // Get the prototype of ExtendedAttrs.
   const extendedAttrsPrototype = Object.getPrototypeOf(
     xterm._core._inputHandler._curAttrData.extended

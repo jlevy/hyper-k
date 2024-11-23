@@ -77,7 +77,7 @@ class DynamicIframe extends React.Component {
   }
 
   render() {
-    const { src, style = {} } = this.props;
+    const { src, onLoad, style = {} } = this.props;
     const { width, height } = this.state;
 
     const containerStyle = {
@@ -106,6 +106,7 @@ class DynamicIframe extends React.Component {
       },
       React.createElement("iframe", {
         src: src,
+        onLoad,
         style: iframeStyle,
         // TODO: Do we need allow-top-navigation and allow-top-navigation-by-user-activation?
         sandbox:

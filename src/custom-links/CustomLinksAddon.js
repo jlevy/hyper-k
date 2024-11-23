@@ -67,14 +67,7 @@ class CustomLinksAddon {
 
     // -- Hotfix underline style --
 
-    try {
-      hotfixUnderlineStyle(this, xterm);
-    } catch (error) {
-      console.error(
-        "Error hotfixing underline style, maybe use Hyper v4?",
-        error
-      );
-    }
+    hotfixUnderlineStyle(this, xterm);
 
     // -- OSC link provider --
 

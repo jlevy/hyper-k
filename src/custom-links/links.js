@@ -5,6 +5,7 @@ const {
   getCellDimensions,
   cellToPixelCoords,
 } = require("../utils/xterm-utils");
+const { TOOLTIP_HIDE_DELAY } = require("../custom-theme/theme-constants");
 
 // Function to remove old addons.
 // XXX This is a hack but not sure of a better way.
@@ -91,15 +92,15 @@ const decorateTerm = (Term, { React }) => {
       }
     }
 
-    hideTooltip(immediate = false) {
+    hideTooltip(timeout) {
       this.setState({
         tooltipActivated: false,
       });
-      // Note even if xterm thinks we aren't active, we still need to check if
-      // the actual tooltip is hovered.
+      // Note even if the target xterm link active, we still need to check if
+      // the tooltip itself is hovered and if so keep it open.
       if (this.tooltipRef.current && !this.tooltipRef.current.state.isHovered) {
-        console.log("links: hideTooltip immediate", immediate);
-        this.tooltipRef.current.setHideTimeout(immediate ? 0 : undefined);
+        console.log("links: hideTooltip", timeout);
+        this.tooltipRef.current.setHideTimeout(timeout);
       }
     }
 
@@ -119,7 +120,7 @@ const decorateTerm = (Term, { React }) => {
       // Add new custom links addon, pass showIframe method directly
       const linksAddon = new CustomLinksAddon(xterm, {
         showTooltip: this.showTooltip,
-        hideTooltip: () => this.hideTooltip(false),
+        hideTooltip: () => this.hideTooltip(TOOLTIP_HIDE_DELAY),
         showIframe: (src, range) => {
           console.log("links: showIframe", {
             src,
@@ -129,7 +130,7 @@ const decorateTerm = (Term, { React }) => {
           if (!this.iframeViewerRef.current) {
             throw new Error("IframeViewer ref not available");
           }
-          this.hideTooltip(true);
+          this.hideTooltip(0);
           this.iframeViewerRef.current.showIframe(src, range, xterm);
         },
         hideIframe: () => {
