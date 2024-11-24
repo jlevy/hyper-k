@@ -1,6 +1,8 @@
 const React = require("react");
 const IframeTooltip = require("./IframeTooltip");
 const PlainTooltip = require("./PlainTooltip");
+const LinkInfoTooltip = require("./LinkInfoTooltip");
+const { isLocalUrl } = require("../utils/url-utils");
 const {
   CONTENT_TOOLTIP_INIT_SIZE,
   SMALL_TOOLTIP_SIZE,
@@ -225,12 +227,22 @@ class Tooltip extends React.Component {
     // Update ContentComponent to use state values and add visibility control
     let ContentComponent;
     if (currentPreviewUrl) {
-      ContentComponent = React.createElement(IframeTooltip, {
-        src: currentPreviewUrl,
-        fontSize,
-        onResize: this.handleIframeResize.bind(this),
-        visible: visible, // Pass visibility state
-      });
+      if (isLocalUrl(currentPreviewUrl)) {
+        // For local URLs, show full iframe preview
+        ContentComponent = React.createElement(IframeTooltip, {
+          src: currentPreviewUrl,
+          fontSize,
+          onResize: this.handleIframeResize.bind(this),
+          visible: visible, // Pass visibility state
+        });
+      } else {
+        // For external URLs, show metadata preview
+        ContentComponent = React.createElement(LinkInfoTooltip, {
+          url: currentPreviewUrl,
+          fontSize,
+          visible: visible,
+        });
+      }
     } else {
       ContentComponent = React.createElement(PlainTooltip, {
         text: currentContent,

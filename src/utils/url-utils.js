@@ -6,4 +6,8 @@ const isLocalUrl = (url) => {
   );
 };
 
-module.exports = { isLocalUrl };
+const abbreviateUrl = (url, maxLength = 60) => {
+  return url.length > maxLength ? url.slice(0, maxLength - 1) + "…" : url;
+};
+
+module.exports = { isLocalUrl, abbreviateUrl };
