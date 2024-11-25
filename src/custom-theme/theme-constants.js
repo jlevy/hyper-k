@@ -24,8 +24,8 @@ const CONTENT_TOOLTIP_INIT_SIZE = {
 };
 
 const CONTENT_TOOLTIP_MAX_SIZE = {
-  width: 800,
-  height: 300,
+  width: 640,
+  height: 480,
 };
 
 const SMALL_TOOLTIP_SIZE = {

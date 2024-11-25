@@ -47,16 +47,21 @@ class Tooltip extends React.Component {
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleTooltipMouseEnter = this.handleTooltipMouseEnter.bind(this);
     this.handleTooltipMouseLeave = this.handleTooltipMouseLeave.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
   componentDidMount() {
     document.addEventListener("keydown", this.handleUserTyping, true);
     document.addEventListener("mousemove", this.handleMouseMove, true);
+    document.addEventListener("keydown", this.handleKeyDown, { capture: true });
   }
 
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleUserTyping, true);
     document.removeEventListener("mousemove", this.handleMouseMove, true);
+    document.removeEventListener("keydown", this.handleKeyDown, {
+      capture: true,
+    });
     if (this.hideTimeout) {
       clearTimeout(this.hideTimeout);
     }
@@ -185,6 +190,14 @@ class Tooltip extends React.Component {
     this.setState({ tooltipDimensions: newSize });
   }
 
+  handleKeyDown(event) {
+    if (event.key === "Escape" && this.state.visible) {
+      this.setState({ visible: false, isHovered: false });
+      this.clearShowTimeout();
+      this.clearHideTimeout();
+    }
+  }
+
   render() {
     const { fontSize } = this.props;
     const {
@@ -233,13 +246,14 @@ class Tooltip extends React.Component {
           src: currentPreviewUrl,
           fontSize,
           onResize: this.handleIframeResize.bind(this),
-          visible: visible, // Pass visibility state
+          visible: visible,
         });
       } else {
         // For external URLs, show metadata preview
         ContentComponent = React.createElement(LinkInfoTooltip, {
           url: currentPreviewUrl,
           fontSize,
+          onResize: this.handleIframeResize.bind(this),
           visible: visible,
         });
       }
@@ -247,7 +261,7 @@ class Tooltip extends React.Component {
       ContentComponent = React.createElement(PlainTooltip, {
         text: currentContent,
         fontSize,
-        visible: visible, // Pass visibility state
+        visible: visible,
       });
     }
 

@@ -40,6 +40,7 @@ class CustomLinksAddon {
 
       // Double-click pastes URL
       (event, previewUrl, range, xterm, linkText) => {
+        this.hideTooltip(0);
         handlePasteText(event, previewUrl, range, xterm, linkText);
       }
     );
@@ -47,10 +48,12 @@ class CustomLinksAddon {
     this.commandClickHandler = new ClickHandler(
       // Single-click pastes command
       (event, previewUrl, range, xterm, linkText) => {
+        this.hideTooltip(0);
         handlePasteText(event, previewUrl, range, xterm, linkText);
       },
       // Double-click pastes command too (for now)
       (event, previewUrl, range, xterm, linkText) => {
+        this.hideTooltip(0);
         handlePasteText(event, previewUrl, range, xterm, linkText);
       }
     );

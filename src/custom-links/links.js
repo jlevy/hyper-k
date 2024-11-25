@@ -118,7 +118,8 @@ const decorateTerm = (Term, { React }) => {
       // Add new custom links addon, pass showIframe method directly
       const linksAddon = new CustomLinksAddon(xterm, {
         showTooltip: this.showTooltip,
-        hideTooltip: () => this.hideTooltip(TOOLTIP_HIDE_DELAY),
+        hideTooltip: (timeout = TOOLTIP_HIDE_DELAY) =>
+          this.hideTooltip(timeout),
         showIframe: (src, range) => {
           console.log("links: showIframe", {
             src,

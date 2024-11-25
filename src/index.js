@@ -28,7 +28,9 @@ exports.decorateTerm = (Term, { React, notify }) => {
   // Disabling for now.
   // DecoratedTerm = highlightsDecorateTerm(DecoratedTerm, { React });
 
-  DecoratedTerm = imageDecorateTerm(DecoratedTerm, { React });
+  // Disabling auto image view for now as well. Tooltip image hovers
+  // seem a bit more intuitive.
+  // DecoratedTerm = imageDecorateTerm(DecoratedTerm, { React });
 
   return DecoratedTerm;
 };
