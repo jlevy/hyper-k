@@ -5,20 +5,37 @@ const {
   CONTENT_TOOLTIP_INIT_SIZE,
   CONTENT_TOOLTIP_MAX_SIZE,
 } = require("../custom-theme/theme-constants");
+const ImageTooltip = require("./ImageTooltip");
 
 class IframeTooltip extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       iframeLoaded: false,
+      isImage: false,
     };
     this.handleIframeLoad = this.handleIframeLoad.bind(this);
   }
 
+  componentDidMount() {
+    this.checkIfImage();
+  }
+
   componentDidUpdate(prevProps) {
     if (this.props.src !== prevProps.src) {
-      // New src, reset iframeLoaded to false
       this.setState({ iframeLoaded: false });
+      this.checkIfImage();
+    }
+  }
+
+  async checkIfImage() {
+    try {
+      const response = await fetch(this.props.src, { method: "HEAD" });
+      const contentType = response.headers.get("content-type");
+      this.setState({ isImage: contentType?.startsWith("image/") });
+    } catch (error) {
+      console.error("Error checking content type:", error);
+      this.setState({ isImage: false });
     }
   }
 
@@ -28,7 +45,15 @@ class IframeTooltip extends React.Component {
 
   render() {
     const { src, onResize, visible } = this.props;
-    const { iframeLoaded } = this.state;
+    const { iframeLoaded, isImage } = this.state;
+
+    if (isImage) {
+      return React.createElement(ImageTooltip, {
+        src,
+        visible,
+        onResize,
+      });
+    }
 
     // The content is visible only when the tooltip is visible and the iframe has loaded
     const contentStyle = {
