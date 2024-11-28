@@ -13,9 +13,9 @@ const COMPONENT_BOX_SHADOW_NONE = "0 7px 16px rgba(0, 0, 0, 0)";
 const LINK_DECORATIONS = { underline: false, pointerCursor: true };
 
 const TOOLTIP_TRANSITION = `opacity ${TRANSITION_DURATION}ms ease-in-out, visibility ${TRANSITION_DURATION}ms ease-in-out`;
-const TOOLTIP_SHOW_DELAY = 100;
+const TOOLTIP_SHOW_DELAY = 700;
 const TOOLTIP_HIDE_DELAY = 1000;
-const TOOLTIP_TRANSITION_DELAY = 100;
+const TOOLTIP_TRANSITION_DELAY = 400;
 const TOOLTIP_BORDER_RADIUS = "0";
 
 const CONTENT_TOOLTIP_INIT_SIZE = {

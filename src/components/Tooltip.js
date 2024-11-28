@@ -165,12 +165,14 @@ class Tooltip extends React.Component {
   ) {
     this.setHideTimeout(transitionTimeout);
     setTimeout(() => {
-      this.setShowTimeout(
-        transitionTimeout,
-        targetPosition,
-        currentContent,
-        currentPreviewUrl
-      );
+      if (this.props.activated) {
+        this.setShowTimeout(
+          transitionTimeout,
+          targetPosition,
+          currentContent,
+          currentPreviewUrl
+        );
+      }
     }, 2 * transitionTimeout);
   }
 

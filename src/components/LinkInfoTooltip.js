@@ -3,6 +3,7 @@ const colors = require("../colors");
 const {
   UI_FONT_WEIGHT,
   UI_BOLD_FONT_WEIGHT,
+  SMALL_TOOLTIP_SIZE,
 } = require("../custom-theme/theme-constants");
 const { fetchUrlMetadata } = require("../utils/fetch-url-metadata");
 const { smallFont } = require("../utils/font-sizing");
@@ -25,6 +26,7 @@ const linkInfoStyle = {
   display: "flex",
   flexDirection: "column",
   gap: "4px",
+  maxWidth: SMALL_TOOLTIP_SIZE.width,
 };
 
 class LinkInfoTooltip extends React.Component {

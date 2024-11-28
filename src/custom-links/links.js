@@ -9,6 +9,7 @@ const { hotfixRemoveOldAddons } = require("./xterm-remove-addons-hotfix");
 const {
   TOOLTIP_HIDE_DELAY,
   TOOLTIP_TRANSITION_DELAY,
+  TOOLTIP_SHOW_DELAY,
 } = require("../custom-theme/theme-constants");
 
 // Upper right of the range of chars.
@@ -68,20 +69,19 @@ const decorateTerm = (Term, { React }) => {
       });
 
       if (this.tooltipRef.current) {
-        // If tooltip is already visible, use quick transition
+        // Experiment: If tooltip is already visible, use quick transition?
         if (this.tooltipRef.current.state.visible) {
           console.log("links: showTooltip: already visible, quick transition!");
           this.tooltipRef.current.setHideThenShowTimeout(
-            300,
+            TOOLTIP_TRANSITION_DELAY,
             position,
             text,
             previewUrl
           );
         } else {
           console.log("links: showTooltip: normal show");
-          // Normal show behavior for first tooltip
           this.tooltipRef.current.setShowTimeout(
-            TOOLTIP_TRANSITION_DELAY,
+            TOOLTIP_SHOW_DELAY,
             position,
             text,
             previewUrl
